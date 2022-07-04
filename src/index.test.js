@@ -53,9 +53,6 @@ test('ship does not report as sunk when not sunk', () =>
 
 //gameboard tests
 
-test('gameboard determines next numbers going down (easiest case)', () => 
-  expect(index.gameBoard().getCoordinates('a', 3, 3, 'down')).toEqual(['a3', 'a4', 'a5']))
-
 //get letters tests -- these can be deleted haha
 test('gameboard determines that the letter is the same bc of direction', () =>
   expect(index.gameBoard().getLetters('b', 3, 'down')).toEqual(['b','b','b']))
@@ -148,16 +145,44 @@ test('letter match function returns index of the letter array', () =>
   const numberCoordinates3 = index.gameBoard().getNumbers(5, 5, 'up')
   const letterCoordinates3 = index.gameBoard().getLetters('j', 5, 'up')
 
-  test('combines coordinates', () => 
+  const numberCoordinates4 = index.gameBoard().getNumbers(5, 5, 'left')
+  const letterCoordinates4 = index.gameBoard().getLetters('j', 5, 'left')
+
+  describe('rewrite of the combined test function to test array manipulation', () => {
+  
+    test('combines coordinates', () => 
     expect(index.gameBoard().combineCoordinates(numberCoordinates, letterCoordinates)).toEqual([
       'a1', 'b1', 'c1'
     ]))
   
-  test('combines coordinates second case', () => 
-    expect(index.gameBoard().combineCoordinates(numberCoordinates2, letterCoordinates2))
-    .toEqual(['j5', 'j6', 'j7', 'j8', 'j9']))
-
     test('combines coordinates second case', () => 
-    expect(index.gameBoard().combineCoordinates(numberCoordinates3, letterCoordinates3))
-    .toEqual(['j5', 'j4', 'j3', 'j2', 'j1']))
-    
+      expect(index.gameBoard().combineCoordinates(numberCoordinates2, letterCoordinates2))
+      .toEqual(['j5', 'j6', 'j7', 'j8', 'j9']))
+
+      test('combines coordinates third case', () => 
+        expect(index.gameBoard().combineCoordinates(numberCoordinates3, letterCoordinates3))
+        .toEqual(['j5', 'j4', 'j3', 'j2', 'j1']))
+  
+    test('combines coordinates fourth case', () =>
+      expect(index.gameBoard().combineCoordinates(numberCoordinates4, letterCoordinates4))
+      .toEqual(['j5', 'i5', 'h5', 'g5', 'f5']))
+  
+  })
+
+  
+// receive attack tests
+describe('test of occupied spot functionality and hit functionality', () =>  {
+  beforeEach(() => {
+    board = index.gameBoard()
+    board.combineCoordinates(numberCoordinates2, letterCoordinates2)
+    board.receiveHit('j9')
+  })
+
+  test('simple check', () =>
+    expect(board.getMap().occupied).toEqual(['j5', 'j6', 'j7', 'j8', 'j9']))
+
+
+  test('it takes a coord and adds it to the hits if it is a hit', () => {
+    expect(board.getMap().hits).toEqual(['j9'])
+  })
+})

@@ -1,6 +1,7 @@
 
 function ship(length) {
-  const map = {};
+  const coordinates: []
+  
   for (let i = 1; i <= length; i+= 1) {
    map[i] = 'not hit';
   }
@@ -36,11 +37,18 @@ function ship(length) {
 function gameBoard() {
   const numberArray = [1,2,3,4,5,6,7,8,9,10]
   const letterArray = ['a','b','c','d','e','f','g','h','i','j']
-  
+  const map = {
+    occupied: [],
+    misses: [],
+    hits: [],
+  }
+
+  // gets index of letter input
   function letterMatch(letter) {
     return letterArray.indexOf(letter)  
   }
-
+  // checks letter + direction validity -- will throw an error to user eventually
+  // for now, terminates the process by returning false
   function checkLetter(letter, length, direction) {
     const letterIndex = letterMatch(letter);
     if ((letterIndex + length) > 9 && direction === 'right') {
@@ -50,7 +58,7 @@ function gameBoard() {
     }
     return true
   }
-
+  // checks number +_direction for validity -- same as checkLetter;
   function checkNumber(number, length, direction) {
     if ((number + length > 10) && direction === 'down') {
       return false
@@ -59,7 +67,8 @@ function gameBoard() {
     }
     return true
   }
-
+  // gets letters and direction and puts them into array; 
+  // gets letter coordinates 
   function getLetters(letter, length, direction) {
     const index = letterMatch(letter);
     const letterCoordinates = [];
@@ -82,7 +91,7 @@ function gameBoard() {
     }
     return letterCoordinates
   }
-
+  // returns the number coordinates based on choice
   function getNumbers(number, length, direction) {
     const numberCoordinates = []
     if (direction === 'down') {
@@ -100,33 +109,35 @@ function gameBoard() {
     }
     return numberCoordinates
   }
-  
+  // combines the arrays into simple coordinates (ie, 'j5', 'j3', etc.)
   function combineCoordinates(numberCoordinates, letterCoordinates) {
     const combined = []
     for (let i = 0; i < numberCoordinates.length; i += 1) {
       combined.push(letterCoordinates[i] + numberCoordinates[i])
     }
-    return combined
+    combined.forEach(coord => map.occupied.push(coord))
+    return map.occupied
   }
 
-  function getCoordinates(letter, length, number, direction) {
-    if (direction === 'down' || direction === 'up') {
-      const letterCoord = letter;
+
+  // receives coordinates and pushes to the proper array
+  function receiveHit(coordinate) {
+    if (map.occupied.includes(coordinate) === true) {
+      map.hits.push(coordinate)
+      return map.hits
+    } if (map.occupied.includes(coordinate) === false) {
+      map.misses.push(coordinate)
+      return map.misses
     }
+   }
 
-    const coordArray = []
-    
-    const index = number - 1;
-    for (let i = 0; i < length; i+=1) {
-      coordArray.push(letter + numberArray[index+i])
-    }
-
-    return coordArray
-
+  function getMap() {
+    return map
   }
 
   return {
-    getCoordinates,
+    getMap,
+    receiveHit,
     letterMatch,
     getLetters,
     checkLetter,
@@ -140,3 +151,4 @@ module.exports = {
   ship,
   gameBoard
 }
+
