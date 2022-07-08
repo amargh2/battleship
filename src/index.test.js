@@ -1,56 +1,4 @@
 const index = require('./index')
-//ship tests
-test('ship object takes and returns length', () => 
-  expect(index.ship(3).length).toBe(3))
-
-test('reports sunk status as false initially', () => 
-  expect(index.ship().sunk).toBe(false))
-
-test('ship has a test counter variable', () => 
-  expect(index.ship().hits).toBe(0))
-
-test('returns map object', () => 
-  expect(index.ship().map).toEqual({}))
-
-test ('returns a map object based on length', () =>
-  expect(index.ship(3).map).toEqual({
-    1: 'not hit',
-    2: 'not hit',
-    3: 'not hit',
-  }))
-
-
-const newShip = index.ship(3);
-newShip.hit(2)
-test('hit ticks corresponding object', () =>
-    expect(newShip.map[2]).toEqual('hit'))
-test('hit increases hit count', () => {
-  expect(newShip.hits).toBe(1);
-})
-
-const nextShip = index.ship(3);
-nextShip.hit(1);
-nextShip.hit(2);
-nextShip.hit(3);
-nextShip.isSunk()
-test('ship reports itself sunk when all parts are hit', () => 
-  expect(nextShip.sunk).toBe(true))
-
-anotherShip = index.ship(4);
-anotherShip.hit(2);
-anotherShip.hit(1);
-anotherShip.hit(1)
-anotherShip.isSunk();
-
-test('show proper number of hits when same spot is hit more than once', () => {
-  expect(anotherShip.hits).toBe(2)
-})
-
-test('ship does not report as sunk when not sunk', () =>
-  expect(anotherShip.sunk).toBeFalsy())
-
-
-
 //gameboard tests
 
 //get letters tests -- these can be deleted haha
@@ -148,6 +96,7 @@ test('letter match function returns index of the letter array', () =>
   const numberCoordinates4 = index.gameBoard().getNumbers(5, 5, 'left')
   const letterCoordinates4 = index.gameBoard().getLetters('j', 5, 'left')
 
+
   describe('rewrite of the combined test function to test array manipulation', () => {
   
     test('combines coordinates', () => 
@@ -185,4 +134,82 @@ describe('test of occupied spot functionality and hit functionality', () =>  {
   test('it takes a coord and adds it to the hits if it is a hit', () => {
     expect(board.getMap().hits).toEqual(['j9'])
   })
+
+  test('report hit function returns the hits array', () => {
+    expect(board.getHits()).toEqual(['j9'])
+  })
+})
+
+// tests for reworked gameboard, to replace current (coordinates instead of indices)
+describe('tests of ship function 2', () => {
+  test('it stores its own coordinates in an object', () => {
+    expect(index.ship().setCoordinates(['j5', 'j6', 'j7'])).toEqual(['j5', 'j6', 'j7'])
+  })
+})
+
+// test of a scanning and ship association scheme
+
+const testBoat = index.shipTwo(4, ['a2','a3','a4','a5'])
+const testBoard = index.gameBoard()
+testBoard.associateShip(testBoat)
+const testBoat2 = index.shipTwo(3, ['a2', 'a3', 'a4'])
+testBoat2.hit('a2')
+testBoat2.hit('a3')
+testBoat2.hit('a4')
+describe('test of gameboard and ship cohesiveness', () => {
+  test('the board stores the ships', () => {
+    expect(testBoard.getMap().shipsOnBoard.at(0).map).toEqual(
+      {
+          'a2':'a2',
+          'a3':'a3',
+          'a4':'a4',
+          'a5':'a5',
+        })
+  })
+  test('the coordinate hit function manipulates the map', () => {
+    expect(testBoat.hit('a2')).toEqual(1)
+  })
+  test('the hit function works for multiple hits', () => {
+    expect(testBoat2.map).toEqual({
+      'a2':'hit',
+      'a3':'hit',
+      'a4':'hit', 
+    })
+  })
+  test('the is sunk function works with coords', () => {
+    expect(testBoat2.isSunk()).toBeTruthy()
+  })
+  test('checking the hits counter', () => {
+    expect(testBoat2.hits).toEqual(3)
+  })
+  test('checking if hits equals length', () => {
+    expect(testBoat2.hits).toEqual(testBoat2.length)
+  })
+  
+  test('the map shows test boat 2 is hit', () => {
+    expect(testBoat2.getMap()).toEqual({
+      'a2':'hit',
+      'a3':'hit',
+      'a4':'hit',
+    })
+  })
+
+})
+
+
+// tests of the player functions
+
+const testPlayer = index.player();
+testPlayer.setName('Anthony')
+
+describe('tests of player functions', () => {  
+  
+  test('attack functions returns a value', () => {
+    expect(testPlayer.attack('a10')).toEqual('a10')
+  })
+  
+  test('name is stored correctly', () => {
+    expect(testPlayer.getName()).toEqual('Anthony')
+  })
+
 })

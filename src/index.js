@@ -1,7 +1,10 @@
 
 function ship(length) {
-  const coordinates: []
-  
+  const map = {
+    
+  }
+
+
   for (let i = 1; i <= length; i+= 1) {
    map[i] = 'not hit';
   }
@@ -21,6 +24,10 @@ function ship(length) {
     }
   }
   
+  function setCoordinates(coords) {
+    coords.forEach(coord => coordinates.push(coord))
+    return coordinates
+  }
 
   return {
     map,
@@ -29,6 +36,53 @@ function ship(length) {
     hits: 0,
     hit,
     isSunk,
+    setCoordinates,
+    coordinates:[],
+  }
+}
+
+function shipTwo(length, coordinates) {
+  const map = {
+  }
+
+  coordinates.forEach((coord) => {
+    map[coord] = coord;
+  })
+  
+  function hit(coordinate) {
+    if (map[coordinate] === 'hit') {
+      return false
+    }
+    map[coordinate] = 'hit'
+    this.hits += 1
+    return this.hits
+  }
+
+  function isSunk() {
+    if (this.hits === this.length) {
+      this.sunk = true;
+    }
+    return this.sunk
+  }
+  
+  function setCoordinates(coords) {
+    coords.forEach(coord => coordinates.push(coord))
+    return coordinates
+  }
+
+  function getMap() { 
+    return map
+  }
+
+  return {
+    getMap,
+    map,
+    length,
+    sunk: false,
+    hits: 0,
+    hit,
+    isSunk,
+    setCoordinates,
     coordinates:[],
   }
 }
@@ -41,6 +95,7 @@ function gameBoard() {
     occupied: [],
     misses: [],
     hits: [],
+    shipsOnBoard: [],
   }
 
   // gets index of letter input
@@ -135,7 +190,17 @@ function gameBoard() {
     return map
   }
 
+  function associateShip(boat) {
+    map.shipsOnBoard.push(boat)
+    return map.shipsOnBoard
+  }
+
+  function getHits() {
+    return map.hits
+  }
+
   return {
+    getHits,
     getMap,
     receiveHit,
     letterMatch,
@@ -143,12 +208,59 @@ function gameBoard() {
     checkLetter,
     checkNumber,
     getNumbers,
-    combineCoordinates
+    combineCoordinates,
+    associateShip
+  }
+}
+
+// player functions
+
+function player() {
+  const playerInfo = {
+    name: '',
+  }
+
+  function attack(attackCoordinate) {
+    return attackCoordinate
+  }
+
+  function setName(name) {
+    playerInfo.name = name
+  }
+
+  function getName() {
+    return playerInfo.name
+  }
+  
+  return {
+    setName,
+    getName,
+    attack,
+  }
+}
+
+function game() = {
+  // instantiation of player and gameboard objects
+  const playerOne = player();
+  const playerTwo = player();
+  const gameBoardOne = gameBoard();
+  const gameBoardTwo = gameBoard();
+  // get ship locations
+  playerOneShips = [];
+  playerTwoShips = [];
+  playerOneShips.push()
+
+  return {
+
   }
 }
 
 module.exports = {
   ship,
-  gameBoard
+  gameBoard,
+  shipTwo,
+  player,
 }
+
+
 
