@@ -140,12 +140,7 @@ describe('test of occupied spot functionality and hit functionality', () =>  {
   })
 })
 
-// tests for reworked gameboard, to replace current (coordinates instead of indices)
-describe('tests of ship function 2', () => {
-  test('it stores its own coordinates in an object', () => {
-    expect(index.ship().setCoordinates(['j5', 'j6', 'j7'])).toEqual(['j5', 'j6', 'j7'])
-  })
-})
+
 
 // test of a scanning and ship association scheme
 
@@ -211,5 +206,141 @@ describe('tests of player functions', () => {
   test('name is stored correctly', () => {
     expect(testPlayer.getName()).toEqual('Anthony')
   })
+  
+})
 
+/* 
+const destroyer = index.shipTwo(2, ['a1', 'a2'])
+
+const cruiser = index.shipTwo(3, ['b2', 'b3', 'b4', 'b5'])
+// test ship getname function 
+describe('testing the length to name function', () => {
+  test('2 resolves to destroyer', () => {
+    expect(destroyer.getName()).toEqual('Destroyer');
+  })
+  test('3 resolves to Submarine', () => {
+    expect(cruiser.getName()).toEqual('Submarine');
+  })
+})
+*/
+
+// game loop stuff / testing whether the functions can talk to each other
+glPlayer = index.player()
+glBoard = index.gameBoard()
+glBoard.pushCoordinatesDirectly(['c3', 'c4', 'c5', 'c6', 'f3', 'g3', 'h3', 'i3', 'a1','a2'])
+const att1 = glPlayer.attack('g3')
+const att2 = glPlayer.attack('h3')
+const att3 = glPlayer.attack('c8')
+glBoard.receiveHit(att1);
+glBoard.receiveHit(att2);
+glBoard.receiveHit(att3);
+const ship1 = index.shipTwo(4, ['c3', 'c4', 'c5', 'c6'])
+const ship2 = index.shipTwo(4, ['f3', 'g3', 'h3', 'i3'])
+const ship3 = index.shipTwo(2, ['a1', 'a2'])
+glBoard.associateShip(ship1);
+glBoard.associateShip(ship2);
+glBoard.associateShip(ship3);
+glBoard.passHitToShip('g3');
+glBoard.passHitToShip('h3');
+glBoard.passHitToShip('c8')
+
+describe('testing the game loop is working', () => {
+  beforeEach(() => {
+    glPlayer = index.player()
+    glBoard = index.gameBoard()
+    glBoard.pushCoordinatesDirectly(['c3', 'c4', 'c5', 'c6', 'f3', 'g3', 'h3', 'i3', 'a1','a2'])
+    const att1 = glPlayer.attack('g3')
+    const att2 = glPlayer.attack('h3')
+    const att3 = glPlayer.attack('c8')
+    glBoard.receiveHit(att1);
+    glBoard.receiveHit(att2);
+    glBoard.receiveHit(att3);
+    const ship1 = index.shipTwo(4, ['c3', 'c4', 'c5', 'c6'])
+    const ship2 = index.shipTwo(4, ['f3', 'g3', 'h3', 'i3'])
+    const ship3 = index.shipTwo(2, ['a1', 'a2'])
+    glBoard.associateShip(ship1);
+    glBoard.associateShip(ship2);
+    glBoard.associateShip(ship3);
+    glBoard.passHitToShip('g3');
+    glBoard.passHitToShip('h3');
+    glBoard.passHitToShip('c8')
+  })
+
+  test('it adds 10 destroyers to the game board', () => {
+    expect(glBoard.getMap().occupied.length).toEqual(10)
+  })
+  test('player attack that is a hit hits', () => {
+    expect(glBoard.getMap().hits).toEqual(['g3', 'h3'])
+  })
+  test('player attack that is a miss ticks the miss', () => {
+    expect(glBoard.getMap().misses).toEqual(['c8'])
+  })
+  test('ships associate to the gameboard properly', () => {
+    expect(glBoard.getMap().shipsOnBoard.length).toEqual(3)
+  })
+  test('hit passes to the appropriate ship', () => {
+    expect(glBoard.getMap().shipsOnBoard.at(1).map).toEqual({
+      'f3':'f3',
+      'g3':'hit',
+      'h3':'hit',
+      'i3':'i3',
+    })
+  })
+  test('the pass function returns false on miss', () => {
+    expect(glBoard.passHitToShip('c8')).toBeFalsy()  
+  })
+})
+
+const anotherPlayer = index.player()
+    const anotherBoard = index.gameBoard()
+    anotherBoard.pushCoordinatesDirectly(['c3', 'c4', 'c5', 'c6', 'f3', 'g3', 'h3', 'i3', 'a1','a2'])
+    const anotherShip1 = index.shipTwo(4, ['c3', 'c4', 'c5', 'c6'])
+    const anotherShip2 = index.shipTwo(4, ['f3', 'g3', 'h3', 'i3'])
+    const anotherShip3 = index.shipTwo(2, ['a1', 'a2'])
+    anotherBoard.associateShip(anotherShip3)
+    anotherBoard.passHitToShip('a1');
+    anotherBoard.passHitToShip('a2');
+    anotherBoard.associateShip(anotherShip2)
+
+describe('tests the sunken ship scanning feature on the game board', () =>{
+  
+  test('a sunken ship pushes to the sunk array', () => {
+    expect(anotherBoard.reportSunkenShips().length).toEqual(1)
+  })
+  test('is sunk returns false when false from the board map', () => {
+    expect(anotherBoard.getMap().shipsOnBoard.at(1).isSunk()).toBeFalsy()
+  })
+})
+
+const computerPlayerTest = index.computerPlayer()
+computerPlayerTest.randomAttack()
+computerPlayerTest.randomAttack()
+computerPlayerTest.randomAttack()
+computerPlayerTest.randomAttack()
+computerPlayerTest.randomAttack()
+
+const computerPlayerTest2 = index.computerPlayer()
+for (i=0; i < 100; i += 1) {
+  computerPlayerTest2.randomAttack()
+}
+
+describe('tests the computer player function', () => {
+  test('random attack returns a value', () => {
+    expect(index.computerPlayer().randomAttack()).toEqual('a3')
+  })
+  test('randomattack ticks the attempted attack array', () => {
+    expect(computerPlayerTest.attemptedAttacks.length).toEqual(5)
+  })
+  test('random attack returns 100 unique values', () => {
+    expect(computerPlayerTest2.attemptedAttacks.length).toEqual(100)
+  })
+  test('random attack returns 100 unique values', () => {
+    expect(computerPlayerTest2.attemptedAttacks).toEqual(100)
+  })
+})
+
+describe('test of win conditions', () => {
+  test('when all occupied spaces are hit, the board toggles to lost', () => {
+    expect()
+  })
 })
