@@ -338,9 +338,35 @@ describe('tests the computer player function', () => {
     expect(computerPlayerTest2.attemptedAttacks).toEqual(100)
   })
 })
-
+const gameBoardx = index.gameBoard()
+    const shipx = index.shipTwo(3, ['a3', 'a4', 'a5']);
+    gameBoardx.associateShip(shipx);
+    const shipy = index.shipTwo(4, ['c4', 'c5', 'c6', 'c7'])
+    gameBoardx.associateShip(shipy)
+    gameBoardx.receiveHit('a3');
+    gameBoardx.receiveHit('a4');
+    gameBoardx.receiveHit('a5');
+    gameBoardx.receiveHit('c4');
+    gameBoardx.receiveHit('c5');
+    gameBoardx.receiveHit('c6');
+    gameBoardx.receiveHit('c7');
+    
+    gameBoardx.passHitToShip('a3');
+    gameBoardx.passHitToShip('a4');
+    gameBoardx.passHitToShip('a5');
+    gameBoardx.passHitToShip('c4');
+    gameBoardx.passHitToShip('c5');
+    gameBoardx.passHitToShip('c6');
+    gameBoardx.passHitToShip('c7');
+    gameBoardx.reportSunkenShips()
 describe('test of win conditions', () => {
   test('when all occupied spaces are hit, the board toggles to lost', () => {
-    expect()
+    expect(gameBoardx.reportLoss()).toBeTruthy()
+  })
+  test('when all occupied spaces are hit, the board toggles to lost', () => {
+    expect(gameBoardx.getMap().sunk).toEqual(['two ship objects'])
+  })
+  test('when all occupied spaces are hit, the board toggles to lost', () => {
+    expect(gameBoardx.reportLoss()).toBeTruthy()
   })
 })

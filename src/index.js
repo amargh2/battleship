@@ -1,3 +1,5 @@
+import './styles.css'
+
 function shipTwo(length, coordinates) {
   const map = {
   }
@@ -73,6 +75,7 @@ function gameBoard() {
     hits: [],
     sunk: [],
     shipsOnBoard: [],
+    allSunk:false
   }
 
   // gets index of letter input
@@ -157,9 +160,25 @@ function gameBoard() {
 
   // receives coordinates and pushes to the proper array; also returns
   // a value; true if a hit; false if not; if true will send hit to appropriate
+  // i think it makes sense for the receive hit to subsume the pass hit to ship
+  // function, since it checks for a hit anyway; makes it easier to write the loop
+  // and the functions themselves stand up on their own fairly well (i think!)
+
+  function passHitToShip(coord) {
+    map.shipsOnBoard.forEach((ship) => {
+      if (Object.keys(ship.map).includes(coord)) {
+        ship.hit(coord)
+      } else {
+        return false
+      }
+    })
+  }
+
+  
   function receiveHit(coordinate) {
     if (map.occupied.includes(coordinate) === true) {
       map.hits.push(coordinate)
+      passHitToShip(coordinate)
       return true
     } if (map.occupied.includes(coordinate) === false) {
       map.misses.push(coordinate)
@@ -183,16 +202,6 @@ function gameBoard() {
     return map.hits
   }
 
-  function passHitToShip(coord) {
-    map.shipsOnBoard.forEach((ship) => {
-      if (Object.keys(ship.map).includes(coord)) {
-        ship.hit(coord)
-      } else {
-        return false
-      }
-    })
-  }
-
   function reportSunkenShips() {
     map.shipsOnBoard.forEach((ship) => {
       if (ship.isSunk() === true) {
@@ -203,8 +212,16 @@ function gameBoard() {
     return map.sunk
   }
 
+  function reportLoss() {
+    if (map.sunk.length === map.shipsOnBoard.length) {
+      map.allSunk = true;
+    }
+    return map.allSunk
+  }
+
   return {
     reportSunkenShips,
+    reportLoss,
     getHits,
     getMap,
     passHitToShip,
@@ -216,7 +233,7 @@ function gameBoard() {
     getNumbers,
     combineCoordinates,
     associateShip,
-    pushCoordinatesDirectly
+    pushCoordinatesDirectly,
   }
 }
 
@@ -303,7 +320,7 @@ function game() {
   const p1Ship2 = shipTwo(4, ['c1', 'd1', 'e1', 'f1']);
   const p1Ship3 = shipTwo(3, ['b4', 'c4', 'd4'])
   const p2Ship1 = shipTwo(4, ['c3', 'c4', 'c5', 'c6'])
-  const p2Ship2 = shipTwo(4, ['b3', 'c3', 'd3', 'e3'])
+  const p2Ship2 = shipTwo(4, ['f3', 'f4', 'f5', 'f6'])
   const p2Ship3 = shipTwo(4, ['a1','a2'])
 
   gameBoardOne.associateShip(p1Ship1);
@@ -314,21 +331,118 @@ function game() {
   gameBoardTwo.associateShip(p2Ship2);
   gameBoardTwo.associateShip(p2Ship3);
 
+  // simple test of the dom stuff
+  page().displayPlayerShips(gameBoardOne.getMap().occupied)
+
   // basic structure of the attack
-  receiveHit(playerOne.attack('j9'))
-
-  return {
-
+  while (gameBoardOne.reportLoss() === false || gameBoardTwo.reportLoss() === false) {
+    gameBoardTwo.receiveHit(playerOne.attack(playerinput));
+    gameBoardOne.receiveHit(playerTwo.randomAttack());
+    gameBoardOne.reportSunkenShips();
+    gameBoardTwo.reportSunkenShips();
   }
+  
 }
 
-module.exports = {
+// for fun and laughs and practice i wrote the page to generate
+// entirely with JavaScript
+
+function page() { 
+
+  function generateBoardArea() {
+    const gameBoardArea = document.createElement('div');
+    gameBoardArea.id = 'gameboardarea'
+    gameBoardArea.className = 'flex justify-center gap-2'
+    const gameBoardOne = document.createElement('div');
+    const gameBoardTwo = document.createElement('div');
+    gameBoardOne.id = 'gameboardone';
+    gameBoardTwo.id = 'gameboardtwo';
+    gameBoardOne.classList = 'grid grid-template-rows'
+    document.body.appendChild(gameBoardArea);
+    gameBoardArea.appendChild(gameBoardOne);
+    gameBoardArea.appendChild(gameBoardTwo);
+  }
+  
+  function generateBoards() {
+    const gameBoardOne = document.getElementById('gameboardone');
+    const gameBoardTwo = document.getElementById('gameboardtwo');
+    gameBoardOne.className = 'grid grid-cols-10 grid-rows-10'
+    gameBoardTwo.className = 'grid grid-cols-10 grid-rows-10'
+    const numberArray = [1,2,3,4,5,6,7,8,9,10];
+    const letterArray = ['a','b','c','d','e','f','g','h','i','j'];
+    numberArray.forEach((num) => {
+      letterArray.forEach((letter) => {
+        let coord = letter+num;
+        const newDivOne = document.createElement('div');
+        newDivOne.className = `${coord} text-xs px-5 py-5 border-2 bg-slate-200 border-black`;
+        newDivOne.textContent = coord
+        const newDivTwo = document.createElement('div')
+        newDivTwo.className = `${coord} text-xs px-5 py-5 border-2 bg-slate-200 border-black`;
+        newDivTwo.textContent = coord
+        gameBoardOne.appendChild(newDivOne);
+        gameBoardTwo.appendChild(newDivTwo);
+      })
+    })
+  }
+
+    function displayPlayerShips(coordinates) {
+      const children = document.getElementById('gameboardone').children;
+      const childrenArray = [...children]
+      coordinates.forEach((coord) => {
+        childrenArray.forEach((child) => {
+          if (child.classList.contains(coord)) {
+            child.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`
+          }
+        })
+      })
+    }
+
+    function generateHeader() {
+      const headerDiv = document.createElement('div');
+      headerDiv.textContent = 'Battleship';
+      headerDiv.className = 'flex justify-center text-xl font-bold shadow-lg bg-slate-200 gap-2'
+      document.body.appendChild(headerDiv);
+    }
+
+    function generateScoreBoard(score1 = 0, score2 = 0) {
+      const scoreDiv = document.createElement('div');
+      scoreDiv.className = 'flex justify-evenly font-bold gap-2'
+      const scoreDiv1 = document.createElement('div');
+      scoreDiv1.className = 'flex justify-center'
+      const scoreDiv2 = document.createElement('div');
+      scoreDiv1.textContent = `Player 1: ${score1}`;
+      scoreDiv2.textContent = `Computer Player: ${score2}`
+      scoreDiv.appendChild(scoreDiv1);
+      scoreDiv.appendChild(scoreDiv2);
+      document.body.appendChild(scoreDiv);
+    }
+    
+    function getPlayerChoice() {
+
+    }
+  
+  return {
+    generateHeader,
+    generateBoardArea,
+    generateBoards,
+    displayPlayerShips,
+    generateScoreBoard,
+  }
+}
+const gameBoardOne = gameBoard()
+gameBoardOne.pushCoordinatesDirectly(['a1', 'a2', 'a3', 'c1', 'd1', 'e1', 'f1', 'h4', 'i4', 'j4'])
+
+page().generateHeader()
+page().generateScoreBoard()
+page().generateBoardArea(gameBoardOne.getMap().hits.length);
+page().generateBoards();
+page().displayPlayerShips(gameBoardOne.getMap().occupied)
+
+/*module.exports = {
   gameBoard,
   shipTwo,
   player,
   game,
   computerPlayer,
-}
-
-
-
+  page,
+}*/
