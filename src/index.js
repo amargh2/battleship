@@ -4,7 +4,7 @@ function shipTwo(length, coordinates) {
   const map = {
   }
 
-  function setName() {
+  /*function setName() {
     if (this.length === 2) {
       this.name = 'Destroyer'
     } if (this.length === 3) {
@@ -14,7 +14,7 @@ function shipTwo(length, coordinates) {
     } if (this.length === 5) {
       this.name = 'Carrier'
     }
-  }
+  }*/
   
   coordinates.forEach((coord) => {
     map[coord] = coord;
@@ -50,10 +50,9 @@ function shipTwo(length, coordinates) {
   }
 
   return {
-    name:setName(),
+    //name:setName(),
     getName,
     getMap,
-    setName,
     map,
     length,
     sunk: false,
@@ -204,6 +203,7 @@ function gameBoard() {
 
   function reportSunkenShips() {
     map.shipsOnBoard.forEach((ship) => {
+      ship.isSunk();
       if (ship.isSunk() === true) {
         map.sunk.push(ship)
       }
@@ -300,53 +300,6 @@ function computerPlayer() {
   }
 }
 
-/* for my reference: where name, length, (quant): 
-Carrier 5 (1); Batleship 4 (2); Cruiser 3 (3); 
-Submarine 4 (3) Destroyer 2 (5); 44 occupied spots on board */
-
-function game() {
-  // instantiation of player and gameboard objects
-  const playerOne = player();
-  const playerTwo = player();
-  const gameBoardOne = gameBoard();
-  const gameBoardTwo = gameBoard();
-  
-  // assigning occupied coordinates -- manual for now; input/random later
-  gameBoardOne.pushCoordinatesDirectly(['a1', 'a2', 'a3', 'c1', 'd1', 'e1', 'f1', 'b4', 'c4', 'd4'])
-  gameBoardTwo.pushCoordinatesDirectly(['c3', 'c4', 'c5', 'c6', 'b3', 'c3', 'd3', 'e3', 'a1','a2'])
-  
-  // ship creation and association to the boards
-  const p1Ship1 = shipTwo(3, ['a1', 'a2', 'a3']);
-  const p1Ship2 = shipTwo(4, ['c1', 'd1', 'e1', 'f1']);
-  const p1Ship3 = shipTwo(3, ['b4', 'c4', 'd4'])
-  const p2Ship1 = shipTwo(4, ['c3', 'c4', 'c5', 'c6'])
-  const p2Ship2 = shipTwo(4, ['f3', 'f4', 'f5', 'f6'])
-  const p2Ship3 = shipTwo(4, ['a1','a2'])
-
-  gameBoardOne.associateShip(p1Ship1);
-  gameBoardOne.associateShip(p1Ship2);
-  gameBoardOne.associateShip(p1Ship3);
-
-  gameBoardTwo.associateShip(p2Ship1);
-  gameBoardTwo.associateShip(p2Ship2);
-  gameBoardTwo.associateShip(p2Ship3);
-
-  // simple test of the dom stuff
-  page().displayPlayerShips(gameBoardOne.getMap().occupied)
-
-  // basic structure of the attack
-  while (gameBoardOne.reportLoss() === false || gameBoardTwo.reportLoss() === false) {
-    gameBoardTwo.receiveHit(playerOne.attack(playerinput));
-    gameBoardOne.receiveHit(playerTwo.randomAttack());
-    gameBoardOne.reportSunkenShips();
-    gameBoardTwo.reportSunkenShips();
-  }
-  
-}
-
-// for fun and laughs and practice i wrote the page to generate
-// entirely with JavaScript
-
 function page() { 
 
   function generateBoardArea() {
@@ -385,43 +338,83 @@ function page() {
     })
   }
 
-    function displayPlayerShips(coordinates) {
-      const children = document.getElementById('gameboardone').children;
-      const childrenArray = [...children]
-      coordinates.forEach((coord) => {
-        childrenArray.forEach((child) => {
-          if (child.classList.contains(coord)) {
-            child.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`
-          }
-        })
+  function displayPlayerShips(coordinates) {
+    const children = document.getElementById('gameboardone').children;
+    const childrenArray = [...children]
+    coordinates.forEach((coord) => {
+      childrenArray.forEach((child) => {
+        if (child.classList.contains(coord)) {
+          child.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`
+        }
       })
-    }
+    })
+  }
 
-    function generateHeader() {
-      const headerDiv = document.createElement('div');
-      headerDiv.textContent = 'Battleship';
-      headerDiv.className = 'flex justify-center text-xl font-bold shadow-lg bg-slate-200 gap-2'
-      document.body.appendChild(headerDiv);
-    }
+  function generateHeader() {
+    const headerDiv = document.createElement('div');
+    headerDiv.textContent = 'Battleship';
+    headerDiv.className = 'flex justify-center text-xl font-bold shadow-lg bg-slate-200 gap-2'
+    document.body.appendChild(headerDiv);
+  }
 
-    function generateScoreBoard(score1 = 0, score2 = 0) {
-      const scoreDiv = document.createElement('div');
-      scoreDiv.className = 'flex justify-evenly font-bold gap-2'
-      const scoreDiv1 = document.createElement('div');
-      scoreDiv1.className = 'flex justify-center'
-      const scoreDiv2 = document.createElement('div');
-      scoreDiv1.textContent = `Player 1: ${score1}`;
-      scoreDiv2.textContent = `Computer Player: ${score2}`
-      scoreDiv.appendChild(scoreDiv1);
-      scoreDiv.appendChild(scoreDiv2);
-      document.body.appendChild(scoreDiv);
-    }
+  function generateScoreBoard(score1 = 0, score2 = 0) {
+    const scoreDiv = document.createElement('div');
+    scoreDiv.className = 'flex justify-evenly font-bold gap-2'
+    const scoreDiv1 = document.createElement('div');
+    scoreDiv1.className = 'flex justify-center'
+    scoreDiv1.id = 'scorediv1'
+    const scoreDiv2 = document.createElement('div');
+    scoreDiv1.textContent = `Player 1: ${score1}`;
+    scoreDiv2.textContent = `Computer Player: ${score2}`
+    scoreDiv2.id = 'scorediv2'
+    scoreDiv.appendChild(scoreDiv1);
+    scoreDiv.appendChild(scoreDiv2);
+    document.body.appendChild(scoreDiv);
+  }
     
-    function getPlayerChoice() {
+  async function playerInput() {
+    const computerBoard = document.getElementById('gameboardtwo');
+    const childrenDivs = Array.from(computerBoard.children);
+    childrenDivs.forEach((div) => {
+      div.addEventListener('click', () => {
+        const input = div.textContent;
+        return input
+      })
+    })    
+  }
 
-    }
+  function toggleToMissed(missedArray, selector) {
+    const divs = Array.from(document.querySelector(selector).children)
+    divs.forEach((div) => {
+      missedArray.forEach((missed) => {
+        if (missed === div.textContent) {
+          div.textContent = 'X';
+        }
+      });
+    })
+  }
+
+  function toggleToHit(hitArray, selector) {
+    const divs = Array.from(document.querySelector(selector).children);
+    divs.forEach((div) => {
+      hitArray.forEach((hit) => {
+        if(hit === div.textContent) {
+          div.classList.add('bg-red-200')
+        }
+      })
+    })
+  }
+
+  function updateScore(score, playerNumber) {
+    const scoreArea = document.getElementById(`scorediv${playerNumber}`)
+    scoreArea.textContent = `Player ${playerNumber}: ${score}`
+  }
   
   return {
+    updateScore,
+    toggleToHit,
+    toggleToMissed,
+    playerInput,
     generateHeader,
     generateBoardArea,
     generateBoards,
@@ -429,15 +422,75 @@ function page() {
     generateScoreBoard,
   }
 }
-const gameBoardOne = gameBoard()
-gameBoardOne.pushCoordinatesDirectly(['a1', 'a2', 'a3', 'c1', 'd1', 'e1', 'f1', 'h4', 'i4', 'j4'])
 
-page().generateHeader()
-page().generateScoreBoard()
-page().generateBoardArea(gameBoardOne.getMap().hits.length);
-page().generateBoards();
-page().displayPlayerShips(gameBoardOne.getMap().occupied)
+/* for my reference: where name, length, (quant): 
+Carrier 5 (1); Batleship 4 (2); Cruiser 3 (3); 
+Submarine 4 (3) Destroyer 2 (5); 44 occupied spots on board */
 
+function game() {
+  // instantiation of player and gameboard objects
+  const playerOne = player();
+  const playerTwo = computerPlayer();
+  const gameBoardOne = gameBoard();
+  const gameBoardTwo = gameBoard();
+  
+  // assigning occupied coordinates -- manual for now; input/random later
+  gameBoardOne.pushCoordinatesDirectly(['a1', 'a2', 'a3', 'c1', 'd1', 'e1', 'f1', 'b4', 'c4', 'd4'])
+  gameBoardTwo.pushCoordinatesDirectly(['c3', 'c4', 'c5', 'c6', 'b3', 'c3', 'd3', 'e3', 'a1','a2'])
+  
+  // ship creation and association to the boards
+  const p1Ship1 = shipTwo(3, ['a1', 'a2', 'a3']);
+  const p1Ship2 = shipTwo(4, ['c1', 'd1', 'e1', 'f1']);
+  const p1Ship3 = shipTwo(3, ['b4', 'c4', 'd4'])
+  const p2Ship1 = shipTwo(4, ['c3', 'c4', 'c5', 'c6'])
+  const p2Ship2 = shipTwo(4, ['f3', 'f4', 'f5', 'f6'])
+  const p2Ship3 = shipTwo(4, ['a1','a2'])
+
+  gameBoardOne.associateShip(p1Ship1);
+  gameBoardOne.associateShip(p1Ship2);
+  gameBoardOne.associateShip(p1Ship3);
+
+  gameBoardTwo.associateShip(p2Ship1);
+  gameBoardTwo.associateShip(p2Ship2);
+  gameBoardTwo.associateShip(p2Ship3);
+
+  // generate the page and score board, and reveal the player ships
+  page().generateHeader();
+  page().generateScoreBoard(gameBoardOne.getMap().hits.length, gameBoardTwo.getMap().hits.length);
+  page().generateBoardArea();
+  page().generateBoards()
+  page().displayPlayerShips(gameBoardOne.getMap().occupied)
+  
+  // adding event listener here, since it's the loop
+  const visualComputerBoard = document.getElementById('gameboardtwo')
+  const divArray = Array.from(visualComputerBoard.children);
+  divArray.forEach((div) => {
+    div.addEventListener('click', () => {
+      console.log(div.textContent)
+      if (div.textContent === 'X') {
+        return false
+      }
+      gameBoardTwo.receiveHit(playerOne.attack(`${div.textContent}`));
+      gameBoardOne.receiveHit(playerTwo.randomAttack());
+      gameBoardOne.reportSunkenShips();
+      gameBoardOne.reportSunkenShips();
+      page().toggleToMissed(gameBoardOne.getMap().misses, '#gameboardone');
+      page().toggleToMissed(gameBoardTwo.getMap().misses, '#gameboardtwo')
+      page().toggleToHit(gameBoardOne.getMap().hits, '#gameboardone')
+      page().toggleToHit(gameBoardTwo.getMap().hits, '#gameboardtwo')
+      page().updateScore(gameBoardTwo.getMap().hits.length, '1');
+      page().updateScore(gameBoardOne.getMap().hits.length, '2');
+    })
+  })
+  
+}
+
+// for fun and laughs and practice i wrote the page to generate
+// entirely with JavaScript
+
+
+
+game()
 /*module.exports = {
   gameBoard,
   shipTwo,
