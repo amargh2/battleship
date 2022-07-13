@@ -1,20 +1,8 @@
-import './styles.css'
+//import './styles.css'
 
 function shipTwo(length, coordinates) {
   const map = {
   }
-
-  /*function setName() {
-    if (this.length === 2) {
-      this.name = 'Destroyer'
-    } if (this.length === 3) {
-      this.name = 'Cruiser'
-    } if (this.length === 4) {
-      this.name = 'Battleship'
-    } if (this.length === 5) {
-      this.name = 'Carrier'
-    }
-  }*/
   
   coordinates.forEach((coord) => {
     map[coord] = coord;
@@ -50,7 +38,6 @@ function shipTwo(length, coordinates) {
   }
 
   return {
-    //name:setName(),
     getName,
     getMap,
     map,
@@ -66,7 +53,7 @@ function shipTwo(length, coordinates) {
 
 
 function gameBoard() {
-  const numberArray = [1,2,3,4,5,6,7,8,9,10]
+  const numberArray = ['1','2','3','4','5','6','7','8','9','10']
   const letterArray = ['a','b','c','d','e','f','g','h','i','j']
   const map = {
     occupied: [],
@@ -75,6 +62,23 @@ function gameBoard() {
     sunk: [],
     shipsOnBoard: [],
     allSunk:false
+  }
+
+  function generateRandomCoordinate() {
+    const randomLetterIndex = Math.floor(Math.random() * letterArray.length);
+    const randomLetter = letterArray[randomLetterIndex];
+    const randomNumberIndex = Math.floor(Math.random() * numberArray.length);
+    const randomNumber = numberArray[randomNumberIndex]
+    return randomLetter+randomNumber
+  }
+
+  function getRandomLetter() {
+    const randomLetterIndex = Math.floor(Math.random() * letterArray.length);
+    return letterArray[randomLetterIndex]
+  }
+
+  function getRandomNumber () {
+    return numberArray[Math.floor(Math.random() * numberArray.length)]
   }
 
   // gets index of letter input
@@ -170,6 +174,7 @@ function gameBoard() {
       } else {
         return false
       }
+      return map.shipsOnBoard
     })
   }
 
@@ -219,7 +224,113 @@ function gameBoard() {
     return map.allSunk
   }
 
+  function getRandomDirection() {
+    const directions = ['right', 'left', 'up', 'down'];
+    const randomIndex = Math.floor(Math.random() * directions.length);
+    return directions[randomIndex]
+  }
+
+  function getRandomCoordinates(shipLength) {
+    let startingLetter = getRandomLetter();
+    let startingNumber = getRandomNumber();
+    const direction = getRandomDirection();
+    // check letter and number with direction and length to make sure it is 'legal'
+    if (checkLetter(startingLetter, shipLength, direction) === false) {
+      return false
+    }
+    if (checkNumber(startingNumber, shipLength, direction) === false) {
+      return false
+    }
+    // gets letter array [includes more checks]
+    const letterCoordinates = getLetters(startingLetter, shipLength, direction);
+    const numberCoordinates = getNumbers(startingNumber, shipLength, direction);
+    const combinedArray = combineCoordinates(numberCoordinates, letterCoordinates);
+    return combinedArray
+  }
+
+  function scanForDoubles(array) {
+    for(let i = 0; i < array.length; i += 1) {
+      const scanValue = map.occupied.includes(array[i])
+      if (scanValue === true) {
+        return false
+      }
+    }
+    return true
+  }
+/* this is a little complicated and i think there is a better way to do it with total array values,
+but the idea is that the occupied spots are taken; map then produces the neighbor coordinates;
+the coordinates are evaluated against the neighbors; if a coord exists in the neighbor array,
+false is returned */
+
+function splitCoordinate(coordinate) {
+  const newArray = coordinate.split('');
+  const letter = newArray[0];
+  const number = newArray[1];
+  return [letter, number]
+}
+
+function createNeighborCoordinates() {
+  const neighborCoordinates = []
+    
+  map.occupied.forEach((coord) => {
+    const splitArray = splitCoordinate(coord);
+    const letterIndex = letterMatch(splitArray[0]);
+    const numberIndex = numberArray.indexOf(splitArray[1]);
+      const neighborCoord1 = letterArray[letterIndex-1] + numberArray[numberIndex-1];
+      const neighborCoord2 = letterArray[letterIndex -1] + numberArray[numberIndex];
+      const neighborCoord3 = letterArray[letterIndex] + numberArray[numberIndex -1];
+      const neighborCoord4 = letterArray[letterIndex +1] + numberArray[numberIndex+1];
+      const neighborCoord5 = letterArray[letterIndex +1] + numberArray[numberIndex];
+      const neighborCoord6 = letterArray[letterIndex] + numberArray[numberIndex+1]
+      const neighborCoord7 = letterArray[letterIndex+1] + numberArray[numberIndex -1];
+      const neighborCoord8 = letterArray[letterIndex-1] + numberArray[numberIndex+1];
+      neighborCoordinates.push(neighborCoord1, neighborCoord2, neighborCoord3, neighborCoord4, neighborCoord5, neighborCoord6, neighborCoord7, neighborCoord8)
+    })  
+  return neighborCoordinates
+}
+
+function checkIfContained(coordinates) {
+  const neighborCoordinates = createNeighborCoordinates(map.occupied);
+  let value = false
+  coordinates.forEach((coordinate) => {
+    if (neighborCoordinates.includes(coordinate)) {
+      value = true
+    }
+  })
+  return value;
+}
+
+  function getCheckedCoordinates(length) {
+    let coordinates = getRandomCoordinates(length);
+    while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles === false) {
+      coordinates = getRandomCoordinates(length)
+    }
+    return coordinates
+  }
+
+
+  /* function checkCoordinates(combinedCoordinates) {
+    const occupiedSpaces = map.occupied;
+    let coordArray = combinedCoordinates;
+    const checked = coordArray.some(element => occupiedSpaces.includes(element))
+    return checked
+  }
+
+  function getCheckedCoordinates(combinedCoordinates) {
+    
+  
+  } */
+  
+  
   return {
+    splitCoordinate,
+    checkIfContained,
+    createNeighborCoordinates,
+    getCheckedCoordinates,
+    // checkCoordinates,
+    scanForDoubles,
+    getRandomCoordinates,
+    generateRandomCoordinate,
     reportSunkenShips,
     reportLoss,
     getHits,
@@ -236,7 +347,7 @@ function gameBoard() {
     pushCoordinatesDirectly,
   }
 }
-
+gameBoard().getRandomCoordinates(6)
 // player functions
 
 function player() {
@@ -325,7 +436,7 @@ function page() {
     const letterArray = ['a','b','c','d','e','f','g','h','i','j'];
     numberArray.forEach((num) => {
       letterArray.forEach((letter) => {
-        let coord = letter+num;
+        const coord = letter+num;
         const newDivOne = document.createElement('div');
         newDivOne.className = `${coord} text-xs px-5 py-5 border-2 bg-slate-200 border-black`;
         newDivOne.textContent = coord
@@ -339,12 +450,12 @@ function page() {
   }
 
   function displayPlayerShips(coordinates) {
-    const children = document.getElementById('gameboardone').children;
+    const {children} = document.getElementById('gameboardone');
     const childrenArray = [...children]
     coordinates.forEach((coord) => {
-      childrenArray.forEach((child) => {
-        if (child.classList.contains(coord)) {
-          child.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`
+      childrenArray.forEach((item) => {
+        if (item.classList.contains(coord)) {
+          item.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`
         }
       })
     })
@@ -423,9 +534,6 @@ function page() {
   }
 }
 
-/* for my reference: where name, length, (quant): 
-Carrier 5 (1); Batleship 4 (2); Cruiser 3 (3); 
-Submarine 4 (3) Destroyer 2 (5); 44 occupied spots on board */
 
 function game() {
   // instantiation of player and gameboard objects
@@ -436,7 +544,7 @@ function game() {
   
   // assigning occupied coordinates -- manual for now; input/random later
   gameBoardOne.pushCoordinatesDirectly(['a1', 'a2', 'a3', 'c1', 'd1', 'e1', 'f1', 'b4', 'c4', 'd4'])
-  gameBoardTwo.pushCoordinatesDirectly(['c3', 'c4', 'c5', 'c6', 'b3', 'c3', 'd3', 'e3', 'a1','a2'])
+  gameBoardTwo.pushCoordinatesDirectly(['c3', 'c4', 'c5', 'c6', 'f3', 'f4', 'f5', 'f6', 'a1','a2'])
   
   // ship creation and association to the boards
   const p1Ship1 = shipTwo(3, ['a1', 'a2', 'a3']);
@@ -444,7 +552,7 @@ function game() {
   const p1Ship3 = shipTwo(3, ['b4', 'c4', 'd4'])
   const p2Ship1 = shipTwo(4, ['c3', 'c4', 'c5', 'c6'])
   const p2Ship2 = shipTwo(4, ['f3', 'f4', 'f5', 'f6'])
-  const p2Ship3 = shipTwo(4, ['a1','a2'])
+  const p2Ship3 = shipTwo(2, ['a1','a2'])
 
   gameBoardOne.associateShip(p1Ship1);
   gameBoardOne.associateShip(p1Ship2);
@@ -473,29 +581,54 @@ function game() {
       gameBoardTwo.receiveHit(playerOne.attack(`${div.textContent}`));
       gameBoardOne.receiveHit(playerTwo.randomAttack());
       gameBoardOne.reportSunkenShips();
-      gameBoardOne.reportSunkenShips();
+      gameBoardTwo.reportSunkenShips();
       page().toggleToMissed(gameBoardOne.getMap().misses, '#gameboardone');
       page().toggleToMissed(gameBoardTwo.getMap().misses, '#gameboardtwo')
       page().toggleToHit(gameBoardOne.getMap().hits, '#gameboardone')
       page().toggleToHit(gameBoardTwo.getMap().hits, '#gameboardtwo')
       page().updateScore(gameBoardTwo.getMap().hits.length, '1');
       page().updateScore(gameBoardOne.getMap().hits.length, '2');
+      console.log(gameBoardOne.getMap())
+      console.log(gameBoardTwo.getMap())
     })
   })
   
+}  
+
+function gameTwo() {
+  const playerOne = player();
+  const playerTwo = computerPlayer();
+  const gameBoardOne = gameBoard();
+  const gameBoardTwo = gameBoard();
+
+
+  const p1Ship1 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3));
+  const p1Ship2 = shipTwo(4, gameBoardOne.getCheckedCoordinates(4));
+  const p1Ship3 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3))
+  const p2Ship1 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4))
+  const p2Ship2 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4))
+  const p2Ship3 = shipTwo(2, gameBoardTwo.getCheckedCoordinates(2))
+
+  gameBoardOne.associateShip(p1Ship1);
+  gameBoardOne.associateShip(p1Ship2);
+  gameBoardOne.associateShip(p1Ship3);
+
+  gameBoardTwo.associateShip(p2Ship1);
+  gameBoardTwo.associateShip(p2Ship2);
+  gameBoardTwo.associateShip(p2Ship3);
+
+  console.log(gameBoardOne.getMap())
+  console.log(gameBoardTwo.getMap())
 }
-
-// for fun and laughs and practice i wrote the page to generate
-// entirely with JavaScript
+gameTwo()
 
 
 
-game()
-/*module.exports = {
+module.exports = {
   gameBoard,
   shipTwo,
   player,
-  game,
+  //game,
   computerPlayer,
-  page,
-}*/
+  //page,
+}
