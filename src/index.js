@@ -1,6 +1,6 @@
-//import './styles.css'
+import './styles.css'
 
-function shipTwo(length, coordinates) {
+function shipTwo(length, ...coordinates) {
   const map = {
   }
   
@@ -61,6 +61,7 @@ function gameBoard() {
     hits: [],
     sunk: [],
     shipsOnBoard: [],
+    neighborCoordinates: [],
     allSunk:false
   }
 
@@ -249,13 +250,14 @@ function gameBoard() {
   }
 
   function scanForDoubles(array) {
-    for(let i = 0; i < array.length; i += 1) {
-      const scanValue = map.occupied.includes(array[i])
-      if (scanValue === true) {
-        return false
+    let truthValue = false;
+    for (let i = 0; i < array.length; i += 1) {
+      if (map.neighborCoordinates.includes(array[i])) {
+        break
       }
+      truthValue = true
     }
-    return true
+    return truthValue
   }
 /* this is a little complicated and i think there is a better way to do it with total array values,
 but the idea is that the occupied spots are taken; map then produces the neighbor coordinates;
@@ -286,15 +288,16 @@ function createNeighborCoordinates() {
       const neighborCoord8 = letterArray[letterIndex-1] + numberArray[numberIndex+1];
       neighborCoordinates.push(neighborCoord1, neighborCoord2, neighborCoord3, neighborCoord4, neighborCoord5, neighborCoord6, neighborCoord7, neighborCoord8)
     })  
-  return neighborCoordinates
+    map.neighborCoordinates.push(neighborCoordinates)
+    return neighborCoordinates
 }
 
-function checkIfContained(coordinates) {
+function checkIfContained(...coordinates) {
   const neighborCoordinates = createNeighborCoordinates(map.occupied);
-  let value = false
+  let value = true
   coordinates.forEach((coordinate) => {
-    if (neighborCoordinates.includes(coordinate)) {
-      value = true
+    if (map.neighborCoordinates.includes(coordinate)) {
+      value = false
     }
   })
   return value;
@@ -302,7 +305,7 @@ function checkIfContained(coordinates) {
 
   function getCheckedCoordinates(length) {
     let coordinates = getRandomCoordinates(length);
-    while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles === false) {
+    while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
       coordinates = getRandomCoordinates(length)
     }
     return coordinates
@@ -604,10 +607,10 @@ function gameTwo() {
 
   const p1Ship1 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3));
   const p1Ship2 = shipTwo(4, gameBoardOne.getCheckedCoordinates(4));
-  const p1Ship3 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3))
-  const p2Ship1 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4))
-  const p2Ship2 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4))
-  const p2Ship3 = shipTwo(2, gameBoardTwo.getCheckedCoordinates(2))
+  const p1Ship3 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3));
+  const p2Ship1 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4));
+  const p2Ship2 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4));
+  const p2Ship3 = shipTwo(2, gameBoardTwo.getCheckedCoordinates(2));
 
   gameBoardOne.associateShip(p1Ship1);
   gameBoardOne.associateShip(p1Ship2);
@@ -619,6 +622,35 @@ function gameTwo() {
 
   console.log(gameBoardOne.getMap())
   console.log(gameBoardTwo.getMap())
+  page().generateHeader();
+  page().generateScoreBoard(gameBoardOne.getMap().hits.length, gameBoardTwo.getMap().hits.length);
+  page().generateBoardArea();
+  page().generateBoards()
+  page().displayPlayerShips(gameBoardOne.getMap().occupied)
+  
+  // adding event listener here, since it's the loop
+  const visualComputerBoard = document.getElementById('gameboardtwo')
+  const divArray = Array.from(visualComputerBoard.children);
+  divArray.forEach((div) => {
+    div.addEventListener('click', () => {
+      console.log(div.textContent)
+      if (div.textContent === 'X') {
+        return false
+      }
+      gameBoardTwo.receiveHit(playerOne.attack(`${div.textContent}`));
+      gameBoardOne.receiveHit(playerTwo.randomAttack());
+      gameBoardOne.reportSunkenShips();
+      gameBoardTwo.reportSunkenShips();
+      page().toggleToMissed(gameBoardOne.getMap().misses, '#gameboardone');
+      page().toggleToMissed(gameBoardTwo.getMap().misses, '#gameboardtwo')
+      page().toggleToHit(gameBoardOne.getMap().hits, '#gameboardone')
+      page().toggleToHit(gameBoardTwo.getMap().hits, '#gameboardtwo')
+      page().updateScore(gameBoardTwo.getMap().hits.length, '1');
+      page().updateScore(gameBoardOne.getMap().hits.length, '2');
+      console.log(gameBoardOne.getMap())
+      console.log(gameBoardTwo.getMap())
+    })
+  })
 }
 gameTwo()
 
