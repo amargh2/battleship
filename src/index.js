@@ -53,7 +53,7 @@ function shipTwo(length, ...coordinates) {
 
 
 function gameBoard() {
-  const numberArray = ['1','2','3','4','5','6','7','8','9','10']
+  const numberArray = [1,2,3,4,5,6,7,8,9,10]
   const letterArray = ['a','b','c','d','e','f','g','h','i','j']
   const map = {
     occupied: [],
@@ -79,7 +79,8 @@ function gameBoard() {
   }
 
   function getRandomNumber () {
-    return numberArray[Math.floor(Math.random() * numberArray.length)]
+    const randomNumberIndex = Math.floor(Math.random() * numberArray.length)
+    return numberArray[randomNumberIndex]
   }
 
   // gets index of letter input
@@ -99,9 +100,12 @@ function gameBoard() {
   }
   // checks number +_direction for validity -- same as checkLetter;
   function checkNumber(number, length, direction) {
-    if ((number + length > 10) && direction === 'down') {
+    if(number > 10) {
       return false
-    } if ((number - length < 0) && direction === 'up') {
+    }
+    if ((number - 1 + length > 9) && direction === 'down') {
+      return false
+    } if ((number - 1 - length < 0) && direction === 'up') {
       return false
     }
     return true
@@ -154,8 +158,7 @@ function gameBoard() {
     for (let i = 0; i < numberCoordinates.length; i += 1) {
       combined.push(letterCoordinates[i] + numberCoordinates[i])
     }
-    combined.forEach(coord => map.occupied.push(coord))
-    return map.occupied
+    return combined
   }
 
   function pushCoordinatesDirectly(coords) {
@@ -236,11 +239,15 @@ function gameBoard() {
     let startingNumber = getRandomNumber();
     const direction = getRandomDirection();
     // check letter and number with direction and length to make sure it is 'legal'
-    if (checkLetter(startingLetter, shipLength, direction) === false) {
-      return false
+    let numberCheck = checkNumber(startingNumber, shipLength, direction);
+    let letterCheck = checkLetter(startingLetter, shipLength, direction);
+    while (letterCheck === false) {
+      startingLetter = getRandomLetter()
+      letterCheck = checkLetter(startingLetter, shipLength, direction)
     }
-    if (checkNumber(startingNumber, shipLength, direction) === false) {
-      return false
+    while (numberCheck === false) {
+      startingNumber = getRandomNumber()
+      numberCheck = checkNumber(startingNumber, shipLength, direction)
     }
     // gets letter array [includes more checks]
     const letterCoordinates = getLetters(startingLetter, shipLength, direction);
@@ -249,13 +256,24 @@ function gameBoard() {
     return combinedArray
   }
 
-  function scanForDoubles(array) {
-    let truthValue = false;
-    for (let i = 0; i < array.length; i += 1) {
-      if (map.neighborCoordinates.includes(array[i])) {
+  function checkForInvalid(array) {
+    let truthValue = true
+    for(let i = 0; i < array.length; i += 1) {
+      if (array[i].includes.undefined || array[i].includes.NaN) {
+        truthValue = false
         break
       }
-      truthValue = true
+    }
+    return truthValue
+  }
+
+  function scanForDoubles(array) {
+    let truthValue = true;
+    for (let i = 0; i < array.length; i += 1) {
+      if (map.occupied.includes(array[i])) {
+        truthValue = false
+        break
+      }
     }
     return truthValue
   }
@@ -277,29 +295,32 @@ function createNeighborCoordinates() {
   map.occupied.forEach((coord) => {
     const splitArray = splitCoordinate(coord);
     const letterIndex = letterMatch(splitArray[0]);
-    const numberIndex = numberArray.indexOf(splitArray[1]);
+    console.log(letterIndex)
+    console.log(splitArray[0])
+    console.log(splitArray[1])
+    console.log(typeof parseInt(splitArray[1], 10))
+    const numberIndex = numberArray.indexOf(parseInt(splitArray[1], 10));
+    console.log(numberIndex)
       const neighborCoord1 = letterArray[letterIndex-1] + numberArray[numberIndex-1];
       const neighborCoord2 = letterArray[letterIndex -1] + numberArray[numberIndex];
-      const neighborCoord3 = letterArray[letterIndex] + numberArray[numberIndex -1];
-      const neighborCoord4 = letterArray[letterIndex +1] + numberArray[numberIndex+1];
-      const neighborCoord5 = letterArray[letterIndex +1] + numberArray[numberIndex];
-      const neighborCoord6 = letterArray[letterIndex] + numberArray[numberIndex+1]
+      const neighborCoord3 = letterArray[letterIndex -1] + numberArray[numberIndex +1];
+      const neighborCoord4 = letterArray[letterIndex] + numberArray[numberIndex+1];
+      const neighborCoord5 = letterArray[letterIndex] + numberArray[numberIndex-1];
+      const neighborCoord6 = letterArray[letterIndex+1] + numberArray[numberIndex+1]
       const neighborCoord7 = letterArray[letterIndex+1] + numberArray[numberIndex -1];
-      const neighborCoord8 = letterArray[letterIndex-1] + numberArray[numberIndex+1];
+      const neighborCoord8 = letterArray[letterIndex+1] + numberArray[numberIndex];
       neighborCoordinates.push(neighborCoord1, neighborCoord2, neighborCoord3, neighborCoord4, neighborCoord5, neighborCoord6, neighborCoord7, neighborCoord8)
     })  
-    map.neighborCoordinates.push(neighborCoordinates)
     return neighborCoordinates
 }
 
-function checkIfContained(...coordinates) {
-  const neighborCoordinates = createNeighborCoordinates(map.occupied);
+function checkIfContained(coordinates) {
   let value = true
-  coordinates.forEach((coordinate) => {
-    if (map.neighborCoordinates.includes(coordinate)) {
-      value = false
-    }
-  })
+  const neighborCoordinates = createNeighborCoordinates(map.occupied)
+  if ((neighborCoordinates.some(coord => coordinates.includes(coord))) === true) {
+    value = false;
+  }
+  console.log(value)
   return value;
 }
 
@@ -307,7 +328,10 @@ function checkIfContained(...coordinates) {
     let coordinates = getRandomCoordinates(length);
     while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
       coordinates = getRandomCoordinates(length)
+      console.log(coordinates)
     }
+    console.log(coordinates)
+    pushCoordinatesDirectly(coordinates)
     return coordinates
   }
 
