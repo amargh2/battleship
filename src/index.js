@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import './styles.css'
 
 function shipTwo(length, coordinates) {
@@ -569,6 +570,7 @@ function page() {
       childrenDivs.forEach((child) => {
         child.remove()
       })
+      // eslint-disable-next-line no-use-before-define
       gameTwo()
     })
   }
@@ -622,6 +624,7 @@ function gameTwo() {
   const visualComputerBoard = document.getElementById('gameboardtwo')
   const divArray = Array.from(visualComputerBoard.children);
   divArray.forEach((div) => {
+    // eslint-disable-next-line consistent-return
     div.addEventListener('click', () => {
       if (div.textContent === 'X' || div.classList.contains('bg-red-200')) {
         return false
@@ -647,7 +650,7 @@ module.exports = {
   gameBoard,
   shipTwo,
   player,
-  //game,
+  // game,
   computerPlayer,
-  //page,
+  // page,
 }
