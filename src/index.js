@@ -101,12 +101,12 @@ function gameBoard() {
   }
   // checks number +_direction for validity -- same as checkLetter;
   function checkNumber(number, length, direction) {
-    if(number > 10) {
+    if(parseInt(number, 10) > 10) {
       return false
     }
-    if ((number - 1 + length > 9) && direction === 'down') {
+    if ((parseInt(number, 10) - 1 + length > 9) && direction === 'down') {
       return false
-    } if ((number - 1 - length < 0) && direction === 'up') {
+    } if ((parseInt(number, 10) - 1 - length < 0) && direction === 'up') {
       return false
     }
     return true
@@ -235,6 +235,24 @@ function gameBoard() {
     return directions[randomIndex]
   }
 
+  function getValidDirection(coord, length) {
+    const directions = ['right', 'left', 'up', 'down'];
+    const letter = coord[0];
+    const number = parseInt(coord.slice(1), 10);
+    if (letterMatch(letter) + length > 9) {
+      directions.splice(directions.indexOf('right'), 1);
+    } if (letterMatch(letter) - length < 0) {
+      directions.splice(directions.indexOf('left'), 1);
+    } if (number + length > 10) {
+      directions.splice(directions.indexOf('down'), 1)
+    } if (number - length < 0) {
+      directions.splice(directions.indexOf('up'), 1);
+    }
+    console.log(directions)
+    const randomChoiceIndex = Math.floor(Math.random() * directions.length)
+    return directions[randomChoiceIndex]
+  }
+
   function getRandomCoordinates(shipLength) {
     let startingLetter = getRandomLetter();
     let startingNumber = getRandomNumber();
@@ -254,6 +272,20 @@ function gameBoard() {
     const letterCoordinates = getLetters(startingLetter, shipLength, direction);
     const numberCoordinates = getNumbers(startingNumber, shipLength, direction);
     const combinedArray = combineCoordinates(numberCoordinates, letterCoordinates);
+    return combinedArray
+  }
+
+  function getCoordinatesFromCoordinate(shipLength, coordinate) {
+    const startingLetter = coordinate[0];
+    const startingNumber = coordinate.slice(1);
+    const direction = getValidDirection(coordinate, shipLength);
+    console.log(direction)
+    // check letter and number with direction and length to make sure it is 'legal'
+    // gets letter array [includes more checks]
+    const letterCoordinates = getLetters(startingLetter, shipLength, direction);
+    const numberCoordinates = getNumbers(startingNumber, shipLength, direction);
+    const combinedArray = combineCoordinates(numberCoordinates, letterCoordinates);
+    console.log(combinedArray)
     return combinedArray
   }
 
@@ -308,7 +340,7 @@ function createNeighborCoordinates() {
   })  
   return neighborCoordinates
 }
-
+// my reasoning for this true equals false stuff is that false = bad value/start again from the gameboards point of view
 function checkIfContained(coordinates) {
   let value = true
   const neighborCoordinates = createNeighborCoordinates(map.occupied)
@@ -327,6 +359,13 @@ function checkIfContained(coordinates) {
     return coordinates
   }
 
+  function getCheckedPlacementCoordinates(length, coordinate) {
+    let coordinates = getCoordinatesFromCoordinate(length, coordinate);
+    while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
+      coordinates = getCoordinatesFromCoordinate(length, coordinate);
+    }
+    return coordinates
+  }
 
   /* function checkCoordinates(combinedCoordinates) {
     const occupiedSpaces = map.occupied;
@@ -342,6 +381,7 @@ function checkIfContained(coordinates) {
   
   
   return {
+    getCheckedPlacementCoordinates,
     splitCoordinate,
     checkIfContained,
     createNeighborCoordinates,
@@ -366,7 +406,6 @@ function checkIfContained(coordinates) {
     pushCoordinatesDirectly,
   }
 }
-gameBoard().getRandomCoordinates(6)
 // player functions
 
 function player() {
@@ -434,7 +473,7 @@ function page() {
 
   function generateContainerDiv() {
     const containerDiv = document.createElement('div');
-    containerDiv.className = 'px-4 py-4'
+    containerDiv.className = 'px-4 py-4';
   }
 // for now making this a single function, but it can easily be two or three to make it more
 // extensible, reusable, able to change the rules/ships/whatever
@@ -443,7 +482,18 @@ function page() {
     const ship1 = document.createElement('div');
     shipDiv.className = 'flex justify-center bg-slate-200'
     ship1.draggable = true;
-    ship1.className = 'py-5 px-16 bg-blue-200'
+    ship1.className = 'py-5 px-16 bg-blue-200';
+    ship1.dataset.size = 5   
+    ship1.addEventListener('dragstart', event => {
+      event.dataTransfer.setData('text', '5')
+    })
+    ship1.addEventListener('drag', event => {
+      event.preventDefault()
+    })
+    ship1.addEventListener('dragend', event => {
+      event.preventDefault()
+    })
+    console.log(ship1.dataset.size)
     shipDiv.appendChild(ship1);
     document.body.appendChild(shipDiv)
   }
@@ -483,6 +533,23 @@ function page() {
       })
     })
   }
+
+  function playerPlacementTileListener() {
+    const playerTilesArray = Array.from(document.getElementById('gameboardone').children);
+    console.log(playerTilesArray)
+    playerTilesArray.forEach((tile => {
+      tile.addEventListener('dragover', event => {
+        event.preventDefault();
+        console.log(event.dataTransfer.getData('text'))
+        console.log(event.target.dataset.size)
+      })
+      tile.addEventListener('drop', event => {
+        event.preventDefault()
+        const size = event.dataTransfer.getData('text')
+        const coords = gameBoard().getCheckedPlacementCoordinates(size, tile.textContent);
+      })
+  })
+)}
 
   function displayPlayerShips(coordinates) {
     const {children} = document.getElementById('gameboardone');
@@ -576,6 +643,7 @@ function page() {
   }
 
   return {
+    playerPlacementTileListener,
     generateVisualShips,
     generateResetButton,
     updateScore,
@@ -619,6 +687,7 @@ function gameTwo() {
   page().generateBoards();
   page().displayPlayerShips(gameBoardOne.getMap().occupied);
   page().generateResetButton();
+  page().playerPlacementTileListener()
   
   // adding event listener here, since it's the loop
   const visualComputerBoard = document.getElementById('gameboardtwo')
