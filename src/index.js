@@ -140,15 +140,15 @@ function gameBoard() {
     const numberCoordinates = []
     if (direction === 'down') {
       for (let i = 0; i < length; i += 1) {
-        numberCoordinates.push(number+i);
+        numberCoordinates.push(parseInt(number,10)+i);
       }
     } if (direction === 'up') {
       for (let i = 0; i < length; i += 1) {
-        numberCoordinates.push(number-i);
+        numberCoordinates.push(parseInt(number,10)-i);
       }
     } if (direction === 'right' || direction === 'left') {
       for (let i = 0; i <  length; i +=1) {
-        numberCoordinates.push(number);
+        numberCoordinates.push(parseInt(number,10));
       }
     }
     return numberCoordinates
@@ -238,18 +238,27 @@ function gameBoard() {
   function getValidDirection(coord, length) {
     const directions = ['right', 'left', 'up', 'down'];
     const letter = coord[0];
-    const number = parseInt(coord.slice(1), 10);
-    if (letterMatch(letter) + length > 9) {
+    const number = parseInt(coord.slice(1), 10)
+    const lengthNumber = parseInt(length, 10)
+    if (letterMatch(letter) + lengthNumber > 9) {
       directions.splice(directions.indexOf('right'), 1);
-    } if (letterMatch(letter) - length < 0) {
+    } if (letterMatch(letter) - lengthNumber < 0) {
       directions.splice(directions.indexOf('left'), 1);
-    } if (number + length > 10) {
-      directions.splice(directions.indexOf('down'), 1)
-    } if (number - length < 0) {
+    } if (number + lengthNumber > 10) {
+      directions.splice(directions.indexOf('down'), 1);
+    } if (number - lengthNumber < 0) {
       directions.splice(directions.indexOf('up'), 1);
     }
     console.log(directions)
+    directions.forEach((direction) => {
+      const coordinates = getCoordinatesFromCoordinate(length, coord, direction)
+      if (checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
+        const directionIndex = directions.indexOf(direction)
+        directions.splice(directionIndex, 1)
+      }
+    })
     const randomChoiceIndex = Math.floor(Math.random() * directions.length)
+    console.log(directions)
     return directions[randomChoiceIndex]
   }
 
@@ -275,17 +284,16 @@ function gameBoard() {
     return combinedArray
   }
 
-  function getCoordinatesFromCoordinate(shipLength, coordinate) {
+  function getCoordinatesFromCoordinate(shipLength, coordinate, direction) {
     const startingLetter = coordinate[0];
     const startingNumber = coordinate.slice(1);
-    const direction = getValidDirection(coordinate, shipLength);
-    console.log(direction)
+
     // check letter and number with direction and length to make sure it is 'legal'
+    
     // gets letter array [includes more checks]
     const letterCoordinates = getLetters(startingLetter, shipLength, direction);
     const numberCoordinates = getNumbers(startingNumber, shipLength, direction);
     const combinedArray = combineCoordinates(numberCoordinates, letterCoordinates);
-    console.log(combinedArray)
     return combinedArray
   }
 
@@ -355,29 +363,24 @@ function checkIfContained(coordinates) {
     while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
       coordinates = getRandomCoordinates(length)
     }
+    console.log(coordinates)
     pushCoordinatesDirectly(coordinates)
+    console.log(map.occupied)
     return coordinates
   }
 
   function getCheckedPlacementCoordinates(length, coordinate) {
-    let coordinates = getCoordinatesFromCoordinate(length, coordinate);
-    while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
-      coordinates = getCoordinatesFromCoordinate(length, coordinate);
+    const direction = getValidDirection(coordinate, length)
+    const coordinates = getCoordinatesFromCoordinate(length, coordinate, direction);
+    console.log(checkIfContained(coordinates))
+    console.log(scanForDoubles(coordinates))
+    console.log(createNeighborCoordinates(map.occupied))
+    if (checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
+      return false
     }
+    console.log(coordinates)
     return coordinates
   }
-
-  /* function checkCoordinates(combinedCoordinates) {
-    const occupiedSpaces = map.occupied;
-    let coordArray = combinedCoordinates;
-    const checked = coordArray.some(element => occupiedSpaces.includes(element))
-    return checked
-  }
-
-  function getCheckedCoordinates(combinedCoordinates) {
-    
-  
-  } */
   
   
   return {
@@ -493,7 +496,6 @@ function page() {
     ship1.addEventListener('dragend', event => {
       event.preventDefault()
     })
-    console.log(ship1.dataset.size)
     shipDiv.appendChild(ship1);
     document.body.appendChild(shipDiv)
   }
@@ -534,9 +536,8 @@ function page() {
     })
   }
 
-  function playerPlacementTileListener() {
+  function playerPlacementTileListener(gameBoard) {
     const playerTilesArray = Array.from(document.getElementById('gameboardone').children);
-    console.log(playerTilesArray)
     playerTilesArray.forEach((tile => {
       tile.addEventListener('dragover', event => {
         event.preventDefault();
@@ -546,14 +547,15 @@ function page() {
       tile.addEventListener('drop', event => {
         event.preventDefault()
         const size = event.dataTransfer.getData('text')
-        const coords = gameBoard().getCheckedPlacementCoordinates(size, tile.textContent);
+        const coord = tile.textContent[0]
+        const number = tile.textContent.slice(1)
+        const coords = gameBoard.getCheckedPlacementCoordinates(size, tile.textContent);
       })
   })
 )}
 
   function displayPlayerShips(coordinates) {
-    const {children} = document.getElementById('gameboardone');
-    const childrenArray = [...children]
+    const childrenArray = Array.from(document.getElementById('gameboardone').children)
     coordinates.forEach((coord) => {
       childrenArray.forEach((item) => {
         if (item.classList.contains(coord)) {
@@ -687,7 +689,7 @@ function gameTwo() {
   page().generateBoards();
   page().displayPlayerShips(gameBoardOne.getMap().occupied);
   page().generateResetButton();
-  page().playerPlacementTileListener()
+  page().playerPlacementTileListener(gameBoardOne)
   
   // adding event listener here, since it's the loop
   const visualComputerBoard = document.getElementById('gameboardtwo')
@@ -708,6 +710,7 @@ function gameTwo() {
       page().toggleToHit(gameBoardTwo.getMap().hits, '#gameboardtwo')
       page().updateScore(gameBoardTwo.getMap().hits.length, '1');
       page().updateScore(gameBoardOne.getMap().hits.length, '2'); 
+      console.log(gameBoardOne.getMap().occupied)
     })
   })
 }
