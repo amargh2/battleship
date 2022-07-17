@@ -297,17 +297,6 @@ function gameBoard() {
     return combinedArray
   }
 
-  function checkForInvalid(array) {
-    let truthValue = true
-    for(let i = 0; i < array.length; i += 1) {
-      if (array[i].includes.undefined || array[i].includes.NaN) {
-        truthValue = false
-        break
-      }
-    }
-    return truthValue
-  }
-
   function scanForDoubles(array) {
     let truthValue = true;
     for (let i = 0; i < array.length; i += 1) {
@@ -380,6 +369,10 @@ function checkIfContained(coordinates) {
     }
     console.log(coordinates)
     return coordinates
+  }
+
+  function selectionRoutine() {
+    
   }
   
   
@@ -541,8 +534,6 @@ function page() {
     playerTilesArray.forEach((tile => {
       tile.addEventListener('dragover', event => {
         event.preventDefault();
-        console.log(event.dataTransfer.getData('text'))
-        console.log(event.target.dataset.size)
       })
       tile.addEventListener('drop', event => {
         event.preventDefault()
@@ -550,6 +541,11 @@ function page() {
         const coord = tile.textContent[0]
         const number = tile.textContent.slice(1)
         const coords = gameBoard.getCheckedPlacementCoordinates(size, tile.textContent);
+        console.log(coords)
+        const shipObject = shipTwo(size, coords)
+        gameBoard.pushCoordinatesDirectly(coords)
+        page().displayPlayerShips(gameBoard.getMap().occupied);
+        gameBoard.associateShip(shipObject)
       })
   })
 )}
@@ -639,7 +635,6 @@ function page() {
       childrenDivs.forEach((child) => {
         child.remove()
       })
-      // eslint-disable-next-line no-use-before-define
       gameTwo()
     })
   }
@@ -665,7 +660,6 @@ function gameTwo() {
   const playerTwo = computerPlayer();
   const gameBoardOne = gameBoard();
   const gameBoardTwo = gameBoard();
-
 
   const p1Ship1 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3));
   const p1Ship2 = shipTwo(4, gameBoardOne.getCheckedCoordinates(4));
@@ -695,7 +689,6 @@ function gameTwo() {
   const visualComputerBoard = document.getElementById('gameboardtwo')
   const divArray = Array.from(visualComputerBoard.children);
   divArray.forEach((div) => {
-    // eslint-disable-next-line consistent-return
     div.addEventListener('click', () => {
       if (div.textContent === 'X' || div.classList.contains('bg-red-200')) {
         return false
