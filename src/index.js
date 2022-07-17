@@ -2,8 +2,14 @@
 import './styles.css'
 
 function shipTwo(length, coordinates) {
+  
+  if (coordinates === false) {
+    return false
+  }
+  
   const map = {
   }
+  
   
   coordinates.forEach((coord) => {
     map[coord] = coord;
@@ -476,20 +482,50 @@ function page() {
   function generateVisualShips() {
     const shipDiv = document.createElement('div');
     const ship1 = document.createElement('div');
-    shipDiv.className = 'flex justify-center bg-slate-200'
+    
+    shipDiv.className = 'flex justify-start gap-2 px-3 py-1 shadow-lg bg-slate-200'
     ship1.draggable = true;
-    ship1.className = 'py-5 px-16 bg-blue-200';
+    ship1.className = 'py-3 text-sm rounded-lg px-16 bg-blue-200';
+    ship1.textContent = 'Ship Size: 5'
     ship1.dataset.size = 5   
-    ship1.addEventListener('dragstart', event => {
-      event.dataTransfer.setData('text', '5')
-    })
-    ship1.addEventListener('drag', event => {
-      event.preventDefault()
-    })
-    ship1.addEventListener('dragend', event => {
-      event.preventDefault()
-    })
-    shipDiv.appendChild(ship1);
+    const ship2 = document.createElement('div')
+    ship2.draggable = true;
+    ship2.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship2.dataset.size = 4;
+    ship2.textContent = 'Ship Size: 4';
+    const ship3 = document.createElement('div')
+    ship3.draggable = true;
+    ship3.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship3.dataset.size = 4;
+    ship3.textContent = 'Ship Size: 4';
+    const ship4 = document.createElement('div')
+    ship4.draggable = true;
+    ship4.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship4.dataset.size = 3;
+    ship4.textContent = 'Ship Size: 3';
+    const ship5 = document.createElement('div')
+    ship5.draggable = true;
+    ship5.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship5.dataset.size = 2;
+    ship5.textContent = 'Ship Size: 2';
+    const ship6 = document.createElement('div')
+    ship6.draggable = true;
+    ship6.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship6.dataset.size = 2;
+    ship6.textContent = 'Ship Size: 2';
+    const shipMarkerArray = [ship1, ship2, ship3, ship4, ship5, ship6]
+    shipMarkerArray.forEach((ship) => {
+      ship.addEventListener('dragstart', event => {
+        event.dataTransfer.setData('text', ship.dataset.size)
+      })
+      ship.addEventListener('drag', event => {
+        event.preventDefault()
+      })
+      ship.addEventListener('dragend', event => {
+        event.preventDefault()
+      })
+    shipDiv.appendChild(ship)
+    })  
     document.body.appendChild(shipDiv)
   }
 
@@ -501,7 +537,7 @@ function page() {
     const gameBoardTwo = document.createElement('div');
     gameBoardOne.id = 'gameboardone';
     gameBoardTwo.id = 'gameboardtwo';
-    gameBoardOne.classList = 'grid grid-template-rows'
+    gameBoardOne.classList = 'grid grid-cols-6'
     document.body.appendChild(gameBoardArea);
     gameBoardArea.appendChild(gameBoardOne);
     gameBoardArea.appendChild(gameBoardTwo);
@@ -510,8 +546,8 @@ function page() {
   function generateBoards() {
     const gameBoardOne = document.getElementById('gameboardone');
     const gameBoardTwo = document.getElementById('gameboardtwo');
-    gameBoardOne.className = 'grid grid-cols-10 grid-rows-10'
-    gameBoardTwo.className = 'grid grid-cols-10 grid-rows-10'
+    gameBoardOne.className = 'col-span-2 grid grid-cols-10 grid-rows-10'
+    gameBoardTwo.className = 'col span-2 grid grid-cols-10 grid-rows-10'
     const numberArray = [1,2,3,4,5,6,7,8,9,10];
     const letterArray = ['a','b','c','d','e','f','g','h','i','j'];
     numberArray.forEach((num) => {
