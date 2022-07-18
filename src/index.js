@@ -157,6 +157,7 @@ function gameBoard() {
         numberCoordinates.push(parseInt(number,10));
       }
     }
+    console.log(numberCoordinates)
     return numberCoordinates
   }
   // combines the arrays into simple coordinates (ie, 'j5', 'j3', etc.)
@@ -246,19 +247,28 @@ function gameBoard() {
     const letter = coord[0];
     const number = parseInt(coord.slice(1), 10)
     const lengthNumber = parseInt(length, 10)
-    if (letterMatch(letter) + lengthNumber > 9) {
+    console.log(letterMatch(letter))
+    console.log(letterMatch(letter)-lengthNumber)
+    if (letterMatch(letter)+1 + lengthNumber > 9) {
       directions.splice(directions.indexOf('right'), 1);
-    } if (letterMatch(letter) - lengthNumber < 0) {
+      console.log(directions)
+    } if (letterMatch(letter)+1 - lengthNumber < 0) {
       directions.splice(directions.indexOf('left'), 1);
+      console.log(directions)
     } if (number + lengthNumber > 10) {
       directions.splice(directions.indexOf('down'), 1);
+      console.log(directions)
     } if (number - lengthNumber < 0) {
       directions.splice(directions.indexOf('up'), 1);
+      console.log(directions)
     }
     console.log(directions)
     directions.forEach((direction) => {
+      console.log(direction)
       const coordinates = getCoordinatesFromCoordinate(length, coord, direction)
-      if (checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
+      console.log(scanForDoubles(coordinates), direction, coord);
+      console.log(checkIfContained(coordinates), direction, coord)
+      if (scanForDoubles(coordinates) === false || checkIfContained(coordinates) === false) {
         const directionIndex = directions.indexOf(direction)
         directions.splice(directionIndex, 1)
       }
@@ -328,9 +338,11 @@ function splitCoordinate(coordinate) {
 function createNeighborCoordinates() {
   const neighborCoordinates = []  
   map.occupied.forEach((coord) => {
-    const splitArray = splitCoordinate(coord);
-    const letterIndex = letterMatch(splitArray[0]);
-    const numberIndex = numberArray.indexOf(parseInt(splitArray[1], 10));
+    //const splitArray = splitCoordinate(coord);
+    const letter = coord[0];
+    const number = coord.slice(1)
+    const letterIndex = letterMatch(letter);
+    const numberIndex = numberArray.indexOf(parseInt(number, 10));
     const neighborCoord1 = letterArray[letterIndex-1] + numberArray[numberIndex-1];
     const neighborCoord2 = letterArray[letterIndex -1] + numberArray[numberIndex];
     const neighborCoord3 = letterArray[letterIndex -1] + numberArray[numberIndex +1];
@@ -358,20 +370,15 @@ function checkIfContained(coordinates) {
     while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
       coordinates = getRandomCoordinates(length)
     }
-    console.log(coordinates)
     pushCoordinatesDirectly(coordinates)
-    console.log(map.occupied)
     return coordinates
   }
 
   function getCheckedPlacementCoordinates(length, coordinate) {
     const direction = getValidDirection(coordinate, length)
-    const coordinates = getCoordinatesFromCoordinate(length, coordinate, direction);
-    console.log(checkIfContained(coordinates))
-    console.log(scanForDoubles(coordinates))
-    console.log(createNeighborCoordinates(map.occupied))
+    let coordinates = getCoordinatesFromCoordinate(length, coordinate, direction);
     if (checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
-      return false
+      coordinates = false
     }
     console.log(coordinates)
     return coordinates
@@ -482,7 +489,7 @@ function page() {
   function generateVisualShips() {
     const shipDiv = document.createElement('div');
     const ship1 = document.createElement('div');
-    
+    shipDiv.id = 'ships'
     shipDiv.className = 'flex justify-start gap-2 px-3 py-1 shadow-lg bg-slate-200'
     ship1.draggable = true;
     ship1.className = 'py-3 text-sm rounded-lg px-16 bg-blue-200';
@@ -500,17 +507,17 @@ function page() {
     ship3.textContent = 'Ship Size: 4';
     const ship4 = document.createElement('div')
     ship4.draggable = true;
-    ship4.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship4.className = 'py-3 text-sm rounded-lg px-10 bg-blue-200'
     ship4.dataset.size = 3;
     ship4.textContent = 'Ship Size: 3';
     const ship5 = document.createElement('div')
     ship5.draggable = true;
-    ship5.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship5.className = 'py-3 text-sm rounded-lg px-8 bg-blue-200'
     ship5.dataset.size = 2;
     ship5.textContent = 'Ship Size: 2';
     const ship6 = document.createElement('div')
     ship6.draggable = true;
-    ship6.className = 'py-3 text-sm rounded-lg px-14 bg-blue-200'
+    ship6.className = 'py-3 text-sm rounded-lg px-8 bg-blue-200'
     ship6.dataset.size = 2;
     ship6.textContent = 'Ship Size: 2';
     const shipMarkerArray = [ship1, ship2, ship3, ship4, ship5, ship6]
@@ -577,11 +584,15 @@ function page() {
         const coord = tile.textContent[0]
         const number = tile.textContent.slice(1)
         const coords = gameBoard.getCheckedPlacementCoordinates(size, tile.textContent);
-        console.log(coords)
+        if (coords === false) {
+          return
+        }
         const shipObject = shipTwo(size, coords)
         gameBoard.pushCoordinatesDirectly(coords)
         page().displayPlayerShips(gameBoard.getMap().occupied);
         gameBoard.associateShip(shipObject)
+        const shipDivs = Array.from(document.getElementById('ships').children)
+        
       })
   })
 )}
@@ -739,7 +750,6 @@ function gameTwo() {
       page().toggleToHit(gameBoardTwo.getMap().hits, '#gameboardtwo')
       page().updateScore(gameBoardTwo.getMap().hits.length, '1');
       page().updateScore(gameBoardOne.getMap().hits.length, '2'); 
-      console.log(gameBoardOne.getMap().occupied)
     })
   })
 }
