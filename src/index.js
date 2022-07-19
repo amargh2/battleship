@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import './styles.css'
 
 function shipTwo(length, coordinates) {
@@ -69,7 +68,41 @@ function gameBoard() {
     sunk: [],
     shipsOnBoard: [],
     neighborCoordinates: [],
-    allSunk:false
+    allSunk:false,
+    sizesToPlace: ['5','4','4','3','2','2']
+  }
+
+  function filterCoordinatesFromOccupiedArray(coordinates) {
+    const filtered = map.occupied.filter(coord => coordinates.indexOf(coord) === -1)
+    return filtered
+  }
+
+  function getArrayFromCoordinate(coordinate) {
+    let array
+    map.shipsOnBoard.forEach(ship => {
+      const arrayFromMap = Object.keys(ship.map)
+      if (arrayFromMap.indexOf(coordinate) !== -1) {
+        array = arrayFromMap
+      }
+    })
+    return array
+  }
+
+  function filterFromOccupied(coordinate) {
+    let filteredArray;
+    map.shipsOnBoard.forEach(ship => {
+      const array = Object.keys(ship.map)
+      if (array.indexOf(coordinate) !== -1) {
+        filteredArray = filterCoordinatesFromOccupiedArray(array)
+      }
+    })
+    return filteredArray;
+  }
+
+  function shipPlacementUpdate(size) {
+    map.sizesToPlace.splice(map.sizesToPlace.indexOf(size), 1);
+    console.log(map.sizesToPlace)
+    return map.sizesToPlace
   }
 
   function generateRandomCoordinate() {
@@ -157,7 +190,6 @@ function gameBoard() {
         numberCoordinates.push(parseInt(number,10));
       }
     }
-    console.log(numberCoordinates)
     return numberCoordinates
   }
   // combines the arrays into simple coordinates (ie, 'j5', 'j3', etc.)
@@ -170,6 +202,7 @@ function gameBoard() {
   }
 
   function pushCoordinatesDirectly(coords) {
+    console.log(coords)
     coords.forEach((coord) => map.occupied.push(coord))
   }
 
@@ -242,42 +275,6 @@ function gameBoard() {
     return directions[randomIndex]
   }
 
-  function getValidDirection(coord, length) {
-    const directions = ['right', 'left', 'up', 'down'];
-    const letter = coord[0];
-    const number = parseInt(coord.slice(1), 10)
-    const lengthNumber = parseInt(length, 10)
-    console.log(letterMatch(letter))
-    console.log(letterMatch(letter)-lengthNumber)
-    if (letterMatch(letter)+1 + lengthNumber > 9) {
-      directions.splice(directions.indexOf('right'), 1);
-      console.log(directions)
-    } if (letterMatch(letter)+1 - lengthNumber < 0) {
-      directions.splice(directions.indexOf('left'), 1);
-      console.log(directions)
-    } if (number + lengthNumber > 10) {
-      directions.splice(directions.indexOf('down'), 1);
-      console.log(directions)
-    } if (number - lengthNumber < 0) {
-      directions.splice(directions.indexOf('up'), 1);
-      console.log(directions)
-    }
-    console.log(directions)
-    directions.forEach((direction) => {
-      console.log(direction)
-      const coordinates = getCoordinatesFromCoordinate(length, coord, direction)
-      console.log(scanForDoubles(coordinates), direction, coord);
-      console.log(checkIfContained(coordinates), direction, coord)
-      if (scanForDoubles(coordinates) === false || checkIfContained(coordinates) === false) {
-        const directionIndex = directions.indexOf(direction)
-        directions.splice(directionIndex, 1)
-      }
-    })
-    const randomChoiceIndex = Math.floor(Math.random() * directions.length)
-    console.log(directions)
-    return directions[randomChoiceIndex]
-  }
-
   function getRandomCoordinates(shipLength) {
     let startingLetter = getRandomLetter();
     let startingNumber = getRandomNumber();
@@ -312,11 +309,11 @@ function gameBoard() {
     const combinedArray = combineCoordinates(numberCoordinates, letterCoordinates);
     return combinedArray
   }
-
-  function scanForDoubles(array) {
+  
+  function scanForDoubles(array, inputArray = map.occupied) {
     let truthValue = true;
     for (let i = 0; i < array.length; i += 1) {
-      if (map.occupied.includes(array[i])) {
+      if (inputArray.includes(array[i])) {
         truthValue = false
         break
       }
@@ -335,10 +332,9 @@ function splitCoordinate(coordinate) {
   return [letter, number]
 }
 
-function createNeighborCoordinates() {
+function createNeighborCoordinates(coordinates = map.occupied) {
   const neighborCoordinates = []  
-  map.occupied.forEach((coord) => {
-    //const splitArray = splitCoordinate(coord);
+  coordinates.forEach((coord) => {
     const letter = coord[0];
     const number = coord.slice(1)
     const letterIndex = letterMatch(letter);
@@ -365,6 +361,18 @@ function checkIfContained(coordinates) {
   return value;
 }
 
+// my reasoning for this true equals false stuff is that false = bad value/start again from the gameboards point of view
+// sand is also rough and the jedi are wrong from this gameboard's point of view. evil thing. :)
+function checkIfContainedWithCustomArray(coordinates, filtered = map.occupied) {
+  let value = true
+  const neighborCoordinates = createNeighborCoordinates(filtered)
+  if ((neighborCoordinates.some(coord => coordinates.includes(coord))) === true) {
+    value = false;
+  }
+  return value;
+}
+
+
   function getCheckedCoordinates(length) {
     let coordinates = getRandomCoordinates(length);
     while (coordinates === false || checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
@@ -374,22 +382,83 @@ function checkIfContained(coordinates) {
     return coordinates
   }
 
-  function getCheckedPlacementCoordinates(length, coordinate) {
-    const direction = getValidDirection(coordinate, length)
+  function getCheckedPlacementCoordinates(length, coordinate, direction) {
+    
     let coordinates = getCoordinatesFromCoordinate(length, coordinate, direction);
     if (checkIfContained(coordinates) === false || scanForDoubles(coordinates) === false) {
       coordinates = false
     }
-    console.log(coordinates)
     return coordinates
   }
 
-  function selectionRoutine() {
-    
+  
+  function getCheckedCoordinatesWithCustomArray(length, coordinate, filteredArray) {
+    const directions = getValidDirectionArray(coordinate, length, filteredArray)
+    const direction = directions[Math.floor(Math.random() * directions.length)]
+    let coordinates = getCoordinatesFromCoordinate(length, coordinate, direction);
+    if (checkIfContainedWithCustomArray(coordinates, filteredArray) === false || scanForDoubles(coordinates, filteredArray) === false) {
+      coordinates = false
+    }
+    return coordinates
   }
   
+     // checks for length mismatches, then duplicates, then neighbor clashes,
+  // currently returns a random valid direction. this will likely change.
+
+  function getValidDirection(coord, length) {
+    const directions = ['right', 'left', 'up', 'down'];
+    const letter = coord[0];
+    const number = parseInt(coord.slice(1), 10)
+    const lengthNumber = parseInt(length, 10)
+    if (letterMatch(letter)+1 + lengthNumber > 10) {
+      directions.splice(directions.indexOf('right'), 1);
+    } if (letterMatch(letter)+1 - lengthNumber < 0) {
+      directions.splice(directions.indexOf('left'), 1);
+    } if (number + lengthNumber > 10) {
+      directions.splice(directions.indexOf('down'), 1);
+    } if (number - lengthNumber < 0) {
+      directions.splice(directions.indexOf('up'), 1);
+    }
+    directions.forEach((direction) => {
+      const coordinates = getCoordinatesFromCoordinate(length, coord, direction)
+      if (scanForDoubles(coordinates) === false || checkIfContained(coordinates) === false) {
+        const directionIndex = directions.indexOf(direction)
+        directions.splice(directionIndex, 1)
+      }
+    })
+    const randomChoiceIndex = Math.floor(Math.random() * directions.length)
+    return directions[randomChoiceIndex]
+  }
+
+  function getValidDirectionArray(coord, length, filtered) {
+    const directions = ['right', 'left', 'up', 'down'];
+    const letter = coord[0];
+    const number = parseInt(coord.slice(1), 10)
+    const lengthNumber = parseInt(length, 10)
+    if (letterMatch(letter) + lengthNumber > 10) {
+      directions.splice(directions.indexOf('right'), 1);
+    } if (letterMatch(letter)+1 - lengthNumber < 0) {
+      directions.splice(directions.indexOf('left'), 1);
+    } if (number + lengthNumber > 10) {
+      directions.splice(directions.indexOf('down'), 1);
+    } if (number - lengthNumber < 0) {
+      directions.splice(directions.indexOf('up'), 1);
+    }
+    directions.forEach((direction) => {
+      const coordinates = getCoordinatesFromCoordinate(length, coord, direction)
+      if (scanForDoubles(coordinates, filtered) === false || checkIfContainedWithCustomArray(coordinates, filtered) === false) {
+        const directionIndex = directions.indexOf(direction)
+        directions.splice(directionIndex, 1)
+      }
+    })
+    return directions
+  }
   
   return {
+    getValidDirection,
+    getArrayFromCoordinate,
+    getCheckedCoordinatesWithCustomArray,
+    shipPlacementUpdate,
     getCheckedPlacementCoordinates,
     splitCoordinate,
     checkIfContained,
@@ -413,6 +482,8 @@ function checkIfContained(coordinates) {
     combineCoordinates,
     associateShip,
     pushCoordinatesDirectly,
+    filterFromOccupied,
+    checkIfContainedWithCustomArray,
   }
 }
 // player functions
@@ -480,17 +551,34 @@ function computerPlayer() {
 
 function page() { 
 
-  function generateContainerDiv() {
-    const containerDiv = document.createElement('div');
-    containerDiv.className = 'px-4 py-4';
+  function generateErrorSpan() {
+    const shipsArea = document.getElementById('ships')
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'error'
+    errorDiv.className = 'relative right-50 px-3 justify-center py-6 text-sm'
+    document.getElementById('ships').appendChild(errorDiv);
   }
-// for now making this a single function, but it can easily be two or three to make it more
+
+  function reportError() {
+    const errorDiv = document.getElementById('error')
+    errorDiv.classList.add('bg-red-200')
+    errorDiv.textContent = 'Make sure you select a valid tile!' 
+  }
+
+  function clearError() {
+    const errorDiv = document.getElementById('error')
+    errorDiv.textContent = ''
+    errorDiv.classList.remove('bg-red-200')
+  }
+
+  // for now making this a single function, but it can easily be two or three to make it more
 // extensible, reusable, able to change the rules/ships/whatever
+  
   function generateVisualShips() {
     const shipDiv = document.createElement('div');
     const ship1 = document.createElement('div');
     shipDiv.id = 'ships'
-    shipDiv.className = 'flex justify-start gap-2 px-3 py-1 shadow-lg bg-slate-200'
+    shipDiv.className = 'flex flex-col gap-2 px-3 py-1 rounded shadow-lg bg-slate-200 col-span-1 col-start-1 row-start-1'
     ship1.draggable = true;
     ship1.className = 'py-3 text-sm rounded-lg px-16 bg-blue-200';
     ship1.textContent = 'Ship Size: 5'
@@ -522,29 +610,74 @@ function page() {
     ship6.textContent = 'Ship Size: 2';
     const shipMarkerArray = [ship1, ship2, ship3, ship4, ship5, ship6]
     shipMarkerArray.forEach((ship) => {
-      ship.addEventListener('dragstart', event => {
+     /* ship.addEventListener('dragstart', event => {
         event.dataTransfer.setData('text', ship.dataset.size)
       })
       ship.addEventListener('drag', event => {
         event.preventDefault()
+        clearError()
+      })
+      ship.addEventListener('dragend', event => {
+        event.preventDefault()
+      }) */
+    shipDiv.appendChild(ship)
+    })  
+    const gameArea = document.getElementById('gameboardarea')
+    gameArea.appendChild(shipDiv) 
+  }
+
+
+  function drag(gameBoard) {
+    let dragged
+    const divs = Array.from(document.getElementById('ships').children);
+    divs.forEach((ship) => {
+      ship.addEventListener('dragstart', event => {
+        dragged = event.target;
+        event.dataTransfer.setData('text', ship.dataset.size);
+      })
+      ship.addEventListener('drag', event => {
+        event.preventDefault();
+        clearError();
       })
       ship.addEventListener('dragend', event => {
         event.preventDefault()
       })
-    shipDiv.appendChild(ship)
-    })  
-    document.body.appendChild(shipDiv)
+    })
+    const playerTilesArray = Array.from(document.getElementById('gameboardone').children);
+      playerTilesArray.forEach((tile => {
+        tile.addEventListener('dragover', event => {
+          event.preventDefault()
+        })
+        tile.addEventListener('drop', event => {
+          event.preventDefault()
+          const size = event.dataTransfer.getData('text');
+          const coord =  tile.textContent[0];
+          const number = tile.textContent.slice(1);
+          const coords = gameBoard.getCheckedPlacementCoordinates(size, tile.textContent, gameBoard.getValidDirection(tile.textContent, size));
+          if (coords === false) {
+            page().reportError();
+          }
+          const shipObject = shipTwo(size, coords)
+          gameBoard.pushCoordinatesDirectly(coords);
+          page().displayPlayerShips(gameBoard.getMap().occupied);
+          gameBoard.associateShip(shipObject);
+          dragged.remove()
+          gameBoard.shipPlacementUpdate(size);
+          addListenerForOccupied(gameBoard);
+          console.log(gameBoard.getMap())
+        })
+      }))
   }
 
   function generateBoardArea() {
     const gameBoardArea = document.createElement('div');
     gameBoardArea.id = 'gameboardarea'
-    gameBoardArea.className = 'flex justify-center gap-2'
+    gameBoardArea.className = 'grid-cols-8 grid justify-center gap-2'
     const gameBoardOne = document.createElement('div');
     const gameBoardTwo = document.createElement('div');
     gameBoardOne.id = 'gameboardone';
     gameBoardTwo.id = 'gameboardtwo';
-    gameBoardOne.classList = 'grid grid-cols-6'
+    gameBoardOne.classList = 'col-start-2 col-span-3'
     document.body.appendChild(gameBoardArea);
     gameBoardArea.appendChild(gameBoardOne);
     gameBoardArea.appendChild(gameBoardTwo);
@@ -553,8 +686,8 @@ function page() {
   function generateBoards() {
     const gameBoardOne = document.getElementById('gameboardone');
     const gameBoardTwo = document.getElementById('gameboardtwo');
-    gameBoardOne.className = 'col-span-2 grid grid-cols-10 grid-rows-10'
-    gameBoardTwo.className = 'col span-2 grid grid-cols-10 grid-rows-10'
+    gameBoardOne.className = 'col-span-3 col-start-2 grid grid-cols-10 grid-rows-10'
+    gameBoardTwo.className = 'col-span-3 col-start-5 span-3 grid grid-cols-10 grid-rows-10'
     const numberArray = [1,2,3,4,5,6,7,8,9,10];
     const letterArray = ['a','b','c','d','e','f','g','h','i','j'];
     numberArray.forEach((num) => {
@@ -572,30 +705,23 @@ function page() {
     })
   }
 
-  function playerPlacementTileListener(gameBoard) {
-    const playerTilesArray = Array.from(document.getElementById('gameboardone').children);
-    playerTilesArray.forEach((tile => {
-      tile.addEventListener('dragover', event => {
-        event.preventDefault();
+  function addListenerForOccupied(playerGameBoard) {
+    const tiles = Array.from(document.getElementById('gameboardone').children);
+    tiles.forEach(tile => {
+      const directions = []
+      tile.addEventListener('click', event => {  
+        if (tile.classList.contains('bg-blue-200')) {
+          const coordinate = event.target.textContent
+          console.log(coordinate)
+          const filtered = playerGameBoard.filterFromOccupied(coordinate)
+          console.log(filtered)
+          const arrayLength = playerGameBoard.getArrayFromCoordinate(coordinate).length
+          console.log(arrayLength)
+          console.log(playerGameBoard.getCheckedCoordinatesWithCustomArray(arrayLength, coordinate, filtered))
+        } 
       })
-      tile.addEventListener('drop', event => {
-        event.preventDefault()
-        const size = event.dataTransfer.getData('text')
-        const coord = tile.textContent[0]
-        const number = tile.textContent.slice(1)
-        const coords = gameBoard.getCheckedPlacementCoordinates(size, tile.textContent);
-        if (coords === false) {
-          return
-        }
-        const shipObject = shipTwo(size, coords)
-        gameBoard.pushCoordinatesDirectly(coords)
-        page().displayPlayerShips(gameBoard.getMap().occupied);
-        gameBoard.associateShip(shipObject)
-        const shipDivs = Array.from(document.getElementById('ships').children)
-        
-      })
-  })
-)}
+    })
+  }
 
   function displayPlayerShips(coordinates) {
     const childrenArray = Array.from(document.getElementById('gameboardone').children)
@@ -687,7 +813,8 @@ function page() {
   }
 
   return {
-    playerPlacementTileListener,
+    addListenerForOccupied,
+    drag,
     generateVisualShips,
     generateResetButton,
     updateScore,
@@ -699,6 +826,9 @@ function page() {
     generateBoards,
     displayPlayerShips,
     generateScoreBoard,
+    reportError,
+    clearError,
+    generateErrorSpan,
   }
 }
 
@@ -708,35 +838,39 @@ function gameTwo() {
   const gameBoardOne = gameBoard();
   const gameBoardTwo = gameBoard();
 
-  const p1Ship1 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3));
-  const p1Ship2 = shipTwo(4, gameBoardOne.getCheckedCoordinates(4));
-  const p1Ship3 = shipTwo(3, gameBoardOne.getCheckedCoordinates(3));
-  const p2Ship1 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4));
+  const p2Ship1 = shipTwo(5, gameBoardTwo.getCheckedCoordinates(5));
   const p2Ship2 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4));
-  const p2Ship3 = shipTwo(2, gameBoardTwo.getCheckedCoordinates(2));
-
-  gameBoardOne.associateShip(p1Ship1);
-  gameBoardOne.associateShip(p1Ship2);
-  gameBoardOne.associateShip(p1Ship3);
+  const p2Ship3 = shipTwo(4, gameBoardTwo.getCheckedCoordinates(4));
+  const p2Ship4 = shipTwo(3, gameBoardTwo.getCheckedCoordinates(3));
+  const p2Ship5 = shipTwo(2, gameBoardTwo.getCheckedCoordinates(2));
+  const p2Ship6 = shipTwo(2, gameBoardTwo.getCheckedCoordinates(2));
 
   gameBoardTwo.associateShip(p2Ship1);
   gameBoardTwo.associateShip(p2Ship2);
   gameBoardTwo.associateShip(p2Ship3);
+  gameBoardTwo.associateShip(p2Ship4);
+  gameBoardTwo.associateShip(p2Ship5);
+  gameBoardTwo.associateShip(p2Ship6);
 
   page().generateHeader();
   page().generateScoreBoard(gameBoardOne.getMap().hits.length, gameBoardTwo.getMap().hits.length);
-  page().generateVisualShips();
   page().generateBoardArea();
+  page().generateVisualShips();
+  page().generateErrorSpan();
   page().generateBoards();
   page().displayPlayerShips(gameBoardOne.getMap().occupied);
   page().generateResetButton();
-  page().playerPlacementTileListener(gameBoardOne)
-  
+  //page().playerPlacementTileListener(gameBoardOne)
+  page().drag(gameBoardOne)
   // adding event listener here, since it's the loop
   const visualComputerBoard = document.getElementById('gameboardtwo')
   const divArray = Array.from(visualComputerBoard.children);
   divArray.forEach((div) => {
     div.addEventListener('click', () => {
+      if (gameBoardOne.getMap().sizesToPlace.length > 0) {
+        console.log('no')
+        return false
+      }
       if (div.textContent === 'X' || div.classList.contains('bg-red-200')) {
         return false
       }
@@ -749,7 +883,8 @@ function gameTwo() {
       page().toggleToHit(gameBoardOne.getMap().hits, '#gameboardone')
       page().toggleToHit(gameBoardTwo.getMap().hits, '#gameboardtwo')
       page().updateScore(gameBoardTwo.getMap().hits.length, '1');
-      page().updateScore(gameBoardOne.getMap().hits.length, '2'); 
+      page().updateScore(gameBoardOne.getMap().hits.length, '2');
+      console.log(gameBoardOne.getMap()) 
     })
   })
 }
