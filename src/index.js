@@ -719,7 +719,7 @@ function page() {
     coordinates.forEach((coord) => {
       childrenArray.forEach((item) => {
         if (item.classList.contains(coord)) {
-          item.classList.add(`${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`)
+          item.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`
         }
       })
     })
