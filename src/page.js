@@ -1,3 +1,6 @@
+import game from './game.js';
+import ship from './ship.js'
+
 function page() { 
 
   function generateErrorSpan() {
@@ -238,7 +241,7 @@ function page() {
     scoreArea.textContent = `Player ${playerNumber}: ${score}`
   }
 
-  function generateResetButton(callback) {
+  function generateResetButton() {
     const resetButtonDiv = document.createElement('div');
     const button = document.createElement('button');
     resetButtonDiv.className = 'flex justify-center py-4'
@@ -247,16 +250,45 @@ function page() {
     button.textContent = 'Reset'
     resetButtonDiv.appendChild(button);
     document.body.appendChild(resetButtonDiv);
+  }
+
+  function generatePage(playerBoard, computerBoard) {
+    generateHeader()
+    generateScoreBoard(playerBoard.getMap().hits.length, computerBoard.getMap().hits.length);
+    generateBoardArea();
+    generateBoards();
+    generateResetButton();
+    addResetListener();
+    generateVisualShips();
+    generateErrorSpan();
+    drag(playerBoard)
+  }
+
+  function addResetListener() {
+    const button = document.getElementById('reset')
     button.addEventListener('click', () => {
       const childrenDivs = [...document.body.children]
       childrenDivs.forEach((child) => {
         child.remove()
       })
-      callback
+      game()
     })
   }
 
+  function generatePage(playerBoard, computerBoard) {
+    generateHeader()
+    generateScoreBoard(playerBoard.getMap().hits.length, computerBoard.getMap().hits.length);
+    generateBoardArea();
+    generateBoards();
+    generateResetButton();
+    addResetListener();
+    generateVisualShips();
+    generateErrorSpan();
+    drag(playerBoard)
+  }
+  
   return {
+    generatePage,
     addListenerForOccupied,
     drag,
     generateVisualShips,
@@ -276,4 +308,4 @@ function page() {
   }
 }
 
-export default {page}
+export default page

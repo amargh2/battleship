@@ -55,4 +55,4 @@ function ship(length, coordinates) {
   }
 }
 
-export default {ship}
+export default ship

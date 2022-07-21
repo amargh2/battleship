@@ -35,4 +35,4 @@ function computerPlayer() {
   }
 }
 
-export default {computerPlayer}
+export default computerPlayer

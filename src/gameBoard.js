@@ -425,4 +425,4 @@ function checkIfContainedWithCustomArray(coordinates, filtered = map.occupied) {
   }
 }
 
-export default {gameBoard}
+export default gameBoard

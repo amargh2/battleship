@@ -22,4 +22,4 @@ function player() {
   }
 }
 
-export default {player}
+export default player
