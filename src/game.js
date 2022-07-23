@@ -38,12 +38,13 @@ function game() {
       console.log('computer:', gameBoardTwo.getMap().sunk)
       console.log('computer all sunk', gameBoardTwo.getMap().allSunk)
       console.log(gameBoardOne.getMap())
+      console.log(gameBoardTwo.getMap())
       console.log(gameBoardOne.reportLoss())
       console.log(gameBoardTwo.reportLoss())
       if (gameBoardOne.reportLoss() === true) {
-        page().reportWinner('Player')
+        page().reportWinner('Computer')
       } if (gameBoardTwo.reportLoss() === true) {
-        page().reportWinner('Computer Player')
+        page().reportWinner('Player One')
       }
     })
   })

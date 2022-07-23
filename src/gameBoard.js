@@ -211,8 +211,9 @@ function gameBoard() {
   function reportSunkenShips() {
     map.shipsOnBoard.forEach((ship) => {
       ship.isSunk();
-      if (ship.isSunk() === true && ship.reportSunk === false) {
+      if (ship.isSunk() === true && ship.reportedSunk === false) {
         map.sunk.push(ship)
+        ship.reportedSunk = true
       }
     })
     return map.sunk
