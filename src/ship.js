@@ -51,7 +51,8 @@ function ship(length, coordinates) {
     hit,
     isSunk,
     setCoordinates,
-    coordinates:[],
+    coordinates:Object.keys(map),
+    reportedSunk: false,
   }
 }
 

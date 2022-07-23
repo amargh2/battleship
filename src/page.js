@@ -25,7 +25,7 @@ function page() {
 
   // for now making this a single function, but it can easily be two or three to make it more
 // extensible, reusable, able to change the rules/ships/whatever
-  
+
   function generateVisualShips() {
     const shipDiv = document.createElement('div');
     const ship1 = document.createElement('div');
@@ -61,33 +61,40 @@ function page() {
     ship6.dataset.size = 2;
     ship6.textContent = 'Ship Size: 2';
     const shipMarkerArray = [ship1, ship2, ship3, ship4, ship5, ship6]
-    shipMarkerArray.forEach((ship) => {
-     /* ship.addEventListener('dragstart', event => {
-        event.dataTransfer.setData('text', ship.dataset.size)
-      })
-      ship.addEventListener('drag', event => {
-        event.preventDefault()
-        clearError()
-      })
-      ship.addEventListener('dragend', event => {
-        event.preventDefault()
-      }) */
-    shipDiv.appendChild(ship)
+    shipMarkerArray.forEach((shipMarker) => {
+    shipDiv.appendChild(shipMarker)
     })  
     const gameArea = document.getElementById('gameboardarea')
     gameArea.appendChild(shipDiv) 
+  }
+
+  function refreshOccupiedSpots(occupiedCoordinates) {
+    const gameTiles = Array.from(document.getElementById('gameboardone').children);
+    gameTiles.forEach(tile => {
+      if (occupiedCoordinates.indexOf(tile.textContent) !== -1) {
+        tile.className = `${tile.textContent} bg-blue-200 text-xs px-5 py-5 border-2 border-black`;
+      } if (occupiedCoordinates.indexOf(tile.textContent) === -1) {
+        tile.className = `${tile.textContent} bg-slate-200 text-xs px-5 py-5 border-2 border-black`
+      }
+    })
   }
 
   function addListenerForOccupied(playerGameBoard) {
     const tiles = Array.from(document.getElementById('gameboardone').children);
     tiles.forEach(tile => {
       tile.addEventListener('click', event => {  
-        if (tile.classList.contains('bg-blue-200')) {
+        if (playerGameBoard.getMap().occupied.includes(event.target.textContent) && playerGameBoard.getMap().sizesToPlace.length > 0) {
           const coordinate = event.target.textContent
           const filtered = playerGameBoard.filterFromOccupied(coordinate)
           const arrayLength = playerGameBoard.getArrayFromCoordinate(coordinate).length
-          console.log(arrayLength)
-          console.log(playerGameBoard.getCheckedCoordinatesWithCustomArray(arrayLength, coordinate, filtered))
+          const newArray = playerGameBoard.getCheckedCoordinatesWithCustomArray(arrayLength, coordinate, filtered)
+          playerGameBoard.deleteCoordinatesFromOccupied(coordinate);
+          playerGameBoard.disassociateShip(coordinate);
+          playerGameBoard.pushCoordinatesDirectly(newArray);
+          const newShip = ship(arrayLength, newArray);
+          playerGameBoard.associateShip(newShip);
+          const occupied = playerGameBoard.getMap();
+          refreshOccupiedSpots(occupied.occupied);
         } 
       })
     })
@@ -96,16 +103,16 @@ function page() {
   function drag(board) {
     let dragged
     const divs = Array.from(document.getElementById('ships').children);
-    divs.forEach((ship) => {
-      ship.addEventListener('dragstart', event => {
+    divs.forEach((div) => {
+      div.addEventListener('dragstart', event => {
         dragged = event.target;
-        event.dataTransfer.setData('text', ship.dataset.size);
+        event.dataTransfer.setData('text', event.target.dataset.size);
       })
-      ship.addEventListener('drag', event => {
+      div.addEventListener('drag', event => {
         event.preventDefault();
         clearError();
       })
-      ship.addEventListener('dragend', event => {
+      div.addEventListener('dragend', event => {
         event.preventDefault()
       })
     })
@@ -123,14 +130,15 @@ function page() {
           }
           const shipObject = ship(size, coords)
           board.pushCoordinatesDirectly(coords);
-          page().displayPlayerShips(board.getMap().occupied);
           board.associateShip(shipObject);
           dragged.remove()
           board.shipPlacementUpdate(size);
+          refreshOccupiedSpots(board.getMap().occupied)
           addListenerForOccupied(board);
         })
       }))
   }
+
 
   function generateBoardArea() {
     const gameBoardArea = document.createElement('div');
@@ -167,13 +175,17 @@ function page() {
       })
     })
   }
-
+  
+  // called in addlistenerforoccupied
   function displayPlayerShips(coordinates) {
     const childrenArray = Array.from(document.getElementById('gameboardone').children)
     coordinates.forEach((coord) => {
       childrenArray.forEach((item) => {
-        if (item.classList.contains(coord)) {
-          item.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`
+        if (item.textContent === coord) {
+          item.className = `${coord} bg-blue-200 text-xs px-5 py-5 border-2 border-black`;
+        } if (playerBoard.getMap().occupied.indexOf(coord) && item.classList.contains('bg-blue-200')) {
+          item.classList.remove('bg-blue-200');
+          item.classList.add('bg-slate-200')
         }
       })
     })
@@ -199,17 +211,6 @@ function page() {
     scoreDiv.appendChild(scoreDiv1);
     scoreDiv.appendChild(scoreDiv2);
     document.body.appendChild(scoreDiv);
-  }
-    
-  async function playerInput() {
-    const computerBoard = document.getElementById('gameboardtwo');
-    const childrenDivs = Array.from(computerBoard.children);
-    childrenDivs.forEach((div) => {
-      div.addEventListener('click', () => {
-        const input = div.textContent;
-        return input
-      })
-    })    
   }
 
   function toggleToMissed(missedArray, selector) {
@@ -252,18 +253,6 @@ function page() {
     document.body.appendChild(resetButtonDiv);
   }
 
-  function generatePage(playerBoard, computerBoard) {
-    generateHeader()
-    generateScoreBoard(playerBoard.getMap().hits.length, computerBoard.getMap().hits.length);
-    generateBoardArea();
-    generateBoards();
-    generateResetButton();
-    addResetListener();
-    generateVisualShips();
-    generateErrorSpan();
-    drag(playerBoard)
-  }
-
   function addResetListener() {
     const button = document.getElementById('reset')
     button.addEventListener('click', () => {
@@ -275,6 +264,13 @@ function page() {
     })
   }
 
+  function reportWinner(string) {
+    const gameBoardAreaChildrenArray = Array.from(document.getElementById('gameboardarea').children)
+    gameBoardAreaChildrenArray.forEach(child => child.remove());
+    const gameBoardArea = document.getElementById('gameboardarea'); 
+    gameBoardArea.textContent = `${string}... You're a winner baby`
+  }
+
   function generatePage(playerBoard, computerBoard) {
     generateHeader()
     generateScoreBoard(playerBoard.getMap().hits.length, computerBoard.getMap().hits.length);
@@ -285,26 +281,21 @@ function page() {
     generateVisualShips();
     generateErrorSpan();
     drag(playerBoard)
+    addListenerForOccupied(playerBoard)
   }
   
   return {
     generatePage,
-    addListenerForOccupied,
-    drag,
-    generateVisualShips,
-    generateResetButton,
-    updateScore,
     toggleToHit,
     toggleToMissed,
-    playerInput,
-    generateHeader,
-    generateBoardArea,
-    generateBoards,
     displayPlayerShips,
     generateScoreBoard,
     reportError,
     clearError,
     generateErrorSpan,
+    refreshOccupiedSpots,
+    updateScore,
+    reportWinner,
   }
 }
 

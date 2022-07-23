@@ -31,12 +31,30 @@ function gameBoard() {
   function filterFromOccupied(coordinate) {
     let filteredArray;
     map.shipsOnBoard.forEach(ship => {
-      const array = Object.keys(ship.map)
+      const array = Object.keys(ship.map);
       if (array.indexOf(coordinate) !== -1) {
         filteredArray = filterCoordinatesFromOccupiedArray(array)
       }
     })
     return filteredArray;
+  }
+
+  function deleteCoordinatesFromOccupied(coordinate) {
+    const arrayForDeletion = getArrayFromCoordinate(coordinate)
+    console.log(arrayForDeletion)
+    arrayForDeletion.forEach(coord => {
+      map.occupied.splice(map.occupied.indexOf(coord), 1)
+    })
+  }
+
+  function disassociateShip(coord) {
+    map.shipsOnBoard.forEach(ship => {
+      const array = Object.keys(ship.map);
+      if(array.indexOf(coord) !== -1) {
+        map.shipsOnBoard.splice(map.shipsOnBoard.indexOf(ship), 1)
+      }
+    })
+    console.log(map.shipsOnBoard)
   }
 
   function shipPlacementUpdate(size) {
@@ -142,7 +160,6 @@ function gameBoard() {
   }
 
   function pushCoordinatesDirectly(coords) {
-    console.log(coords)
     coords.forEach((coord) => map.occupied.push(coord))
   }
 
@@ -194,10 +211,9 @@ function gameBoard() {
   function reportSunkenShips() {
     map.shipsOnBoard.forEach((ship) => {
       ship.isSunk();
-      if (ship.isSunk() === true) {
+      if (ship.isSunk() === true && ship.reportSunk === false) {
         map.sunk.push(ship)
       }
-      return map.sunk
     })
     return map.sunk
   }
@@ -343,7 +359,7 @@ function checkIfContainedWithCustomArray(coordinates, filtered = map.occupied) {
       directions.splice(directions.indexOf('right'), 1);
     } if (letterMatch(letter)+1 - lengthNumber < 0) {
       directions.splice(directions.indexOf('left'), 1);
-    } if (number + lengthNumber > 10) {
+    } if (number + lengthNumber > 11) {
       directions.splice(directions.indexOf('down'), 1);
     } if (number - lengthNumber < 0) {
       directions.splice(directions.indexOf('up'), 1);
@@ -368,7 +384,7 @@ function checkIfContainedWithCustomArray(coordinates, filtered = map.occupied) {
       directions.splice(directions.indexOf('right'), 1);
     } if (letterMatch(letter)+1 - lengthNumber < 0) {
       directions.splice(directions.indexOf('left'), 1);
-    } if (number + lengthNumber > 10) {
+    } if (number + lengthNumber > 11) {
       directions.splice(directions.indexOf('down'), 1);
     } if (number - lengthNumber < 0) {
       directions.splice(directions.indexOf('up'), 1);
@@ -422,6 +438,8 @@ function checkIfContainedWithCustomArray(coordinates, filtered = map.occupied) {
     pushCoordinatesDirectly,
     filterFromOccupied,
     checkIfContainedWithCustomArray,
+    deleteCoordinatesFromOccupied, 
+    disassociateShip
   }
 }
 

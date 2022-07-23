@@ -9,7 +9,7 @@ function game() {
   const playerTwo = computerPlayer();
   const gameBoardOne = gameBoard();
   const gameBoardTwo = generateComputerBoard();
-
+  console.log(gameBoardOne.getMap().occupied)
   page().generatePage(gameBoardOne, gameBoardTwo);
   
   const visualComputerBoard = document.getElementById('gameboardtwo')
@@ -32,7 +32,19 @@ function game() {
       page().toggleToHit(gameBoardOne.getMap().hits, '#gameboardone')
       page().toggleToHit(gameBoardTwo.getMap().hits, '#gameboardtwo')
       page().updateScore(gameBoardTwo.getMap().hits.length, '1');
-      page().updateScore(gameBoardOne.getMap().hits.length, '2'); 
+      page().updateScore(gameBoardOne.getMap().hits.length, '2');
+      //page().reportWinnerIfWinner(gameBoardTwo.getMap().hits, gameBoardOne.getMap().) 
+      console.log('player:', gameBoardOne.getMap().sunk)
+      console.log('computer:', gameBoardTwo.getMap().sunk)
+      console.log('computer all sunk', gameBoardTwo.getMap().allSunk)
+      console.log(gameBoardOne.getMap())
+      console.log(gameBoardOne.reportLoss())
+      console.log(gameBoardTwo.reportLoss())
+      if (gameBoardOne.reportLoss() === true) {
+        page().reportWinner('Player')
+      } if (gameBoardTwo.reportLoss() === true) {
+        page().reportWinner('Computer Player')
+      }
     })
   })
 }
