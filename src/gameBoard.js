@@ -41,7 +41,6 @@ function gameBoard() {
 
   function deleteCoordinatesFromOccupied(coordinate) {
     const arrayForDeletion = getArrayFromCoordinate(coordinate)
-    console.log(arrayForDeletion)
     arrayForDeletion.forEach(coord => {
       map.occupied.splice(map.occupied.indexOf(coord), 1)
     })
@@ -54,12 +53,10 @@ function gameBoard() {
         map.shipsOnBoard.splice(map.shipsOnBoard.indexOf(ship), 1)
       }
     })
-    console.log(map.shipsOnBoard)
   }
 
   function shipPlacementUpdate(size) {
     map.sizesToPlace.splice(map.sizesToPlace.indexOf(size), 1);
-    console.log(map.sizesToPlace)
     return map.sizesToPlace
   }
 

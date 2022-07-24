@@ -200,6 +200,7 @@ function page() {
 
   function generateScoreBoard(score1 = 0, score2 = 0) {
     const scoreDiv = document.createElement('div');
+    scoreDiv.id = 'score'
     scoreDiv.className = 'flex justify-evenly font-bold gap-2'
     const scoreDiv1 = document.createElement('div');
     scoreDiv1.className = 'flex justify-center'
@@ -271,6 +272,37 @@ function page() {
     gameBoardArea.textContent = `${string}... You're a winner baby`
   }
 
+  function betterReportWinner(string) {
+    const scoreDiv = document.getElementById('score');
+    const popUpDiv = document.createElement('div');
+    popUpDiv.className = 'border-4 border-white bg-slate-200 gap-2 shadow sm:rounded-lg flex justify-center';
+    const h3Div = document.createElement('div');
+    h3Div.className = 'px-4 py-5 sm:p-6';
+    const h3 = document.createElement('h3');
+    h3.className = 'text-lg leading-6 font-medium text-gray-900';
+    h3.textContent = `${string}... you're a winner baby.`
+    const buttonDiv = document.createElement('div');
+    buttonDiv.className = 'mt-5';
+    const button = document.createElement('button');
+    button.className = 'inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm'
+    buttonDiv.appendChild(button);
+    button.textContent = 'Play again!'
+    h3Div.appendChild(h3);
+    popUpDiv.appendChild(h3Div);
+    popUpDiv.appendChild(buttonDiv);
+    const gameBoardArea = document.getElementById('gameboardarea')
+    const scoreDivChildren = Array.from(scoreDiv.children)
+    scoreDivChildren.forEach(child => child.remove())
+    scoreDiv.appendChild(popUpDiv)
+    button.addEventListener('click', () => {
+      const childrenDivs = [...document.body.children]
+      childrenDivs.forEach((child) => {
+        child.remove()
+      })
+      game()
+    })
+  }
+
   function generatePage(playerBoard, computerBoard) {
     generateHeader()
     generateScoreBoard(playerBoard.getMap().hits.length, computerBoard.getMap().hits.length);
@@ -296,6 +328,7 @@ function page() {
     refreshOccupiedSpots,
     updateScore,
     reportWinner,
+    betterReportWinner,
   }
 }
 
