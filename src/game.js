@@ -9,7 +9,6 @@ function game() {
   const playerTwo = computerPlayer();
   const gameBoardOne = gameBoard();
   const gameBoardTwo = generateComputerBoard();
-  console.log(gameBoardTwo.getMap().occupied)
   page().generatePage(gameBoardOne, gameBoardTwo);
   
   const visualComputerBoard = document.getElementById('gameboardtwo')

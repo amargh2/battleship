@@ -275,7 +275,7 @@ function page() {
   function betterReportWinner(string) {
     const scoreDiv = document.getElementById('score');
     const popUpDiv = document.createElement('div');
-    popUpDiv.className = 'border-4 border-white bg-slate-200 gap-2 shadow sm:rounded-lg flex justify-center';
+    popUpDiv.className = 'border-4 py-2 px-2 border-white bg-white gap-2 shadow sm:rounded-lg flex justify-center';
     const h3Div = document.createElement('div');
     h3Div.className = 'px-4 py-5 sm:p-6';
     const h3 = document.createElement('h3');
@@ -290,7 +290,6 @@ function page() {
     h3Div.appendChild(h3);
     popUpDiv.appendChild(h3Div);
     popUpDiv.appendChild(buttonDiv);
-    const gameBoardArea = document.getElementById('gameboardarea')
     const scoreDivChildren = Array.from(scoreDiv.children)
     scoreDivChildren.forEach(child => child.remove())
     scoreDiv.appendChild(popUpDiv)
