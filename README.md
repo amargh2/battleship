@@ -4,7 +4,7 @@ BattleShip game with drag and drop, ship direction toggle, ship attack and sinki
 ## About this project
 This is the first 'full-scale' application I built with any programming language (plain JavaScript), and I'm sure the code shows that! A big refactor is in order, but the game works pretty well in its current state. 
 
-Most of the UI is generated with DOM manipulation/appending elements to the tree. I also accidentally implemented one extra rule that is actually not in Battleship, which I legitimately thought was a rule in the game. That accidental extra rule is that ships cannot be directly adjacent to one another. So if you notice weird behavior when placing your ships, or why can't I put this ship right next to this other ship, it's because I added an extra bit of 'collision detection' for the ships on placement that makes sure there's at least one space between a ship and another ship. There's also a bug that I have not yet fixed when altering ship placement.
+Most of the UI is generated with DOM manipulation/appending elements to the tree. I also accidentally implemented one extra rule that is actually not in Battleship. That accidental extra rule is that ships cannot be directly adjacent to one another. So if you notice weird behavior when placing your ships, or why can't I put this ship right next to this other ship, it's because I added an extra bit of 'collision detection' for the ships on placement that makes sure there's at least one space between a ship and another ship.
 
 ## Directions to Use This Program
 
